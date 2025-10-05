@@ -198,3 +198,26 @@ $("langToggle").onclick=()=>{
 </script>
 </body>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "📍ใส่ที่อยู่ Smart Contract ของ DNXStaking ที่คุณ Deploy";
+const contractABI = [ /* วาง ABI จาก Remix หรือ BscScan ที่ Verify แล้ว */ ];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+
+    const userAddress = await signer.getAddress();
+    document.getElementById("walletAddress").innerText = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+    alert("✅ Wallet Connected: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}
+</script>

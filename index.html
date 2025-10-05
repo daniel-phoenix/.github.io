@@ -222,3 +222,125 @@ async function connectWallet() {
 }
 </script>
 <button id="connectWallet" onclick="connectWallet()">Connect Wallet</button>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const contractABI = [ 
+  // ✅ วาง ABI ของ DNXStaking.sol ที่คุณคัดลอกจาก Remix หรือ BscScan ที่ Verify แล้ว
+];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const userAddress = await signer.getAddress();
+    document.querySelector("#walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    alert("✅ เชื่อมต่อสำเร็จ: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const contractABI = [ 
+  // ✅ วาง ABI ของ DNXStaking.sol ที่คุณคัดลอกจาก Remix หรือ BscScan ที่ Verify แล้ว
+];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const userAddress = await signer.getAddress();
+    document.querySelector("#walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    alert("✅ เชื่อมต่อสำเร็จ: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const contractABI = [ 
+  // ✅ วาง ABI ของ DNXStaking.sol ที่คุณคัดลอกจาก Remix หรือ BscScan ที่ Verify แล้ว
+];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const userAddress = await signer.getAddress();
+    document.querySelector("#walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    alert("✅ เชื่อมต่อสำเร็จ: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const contractABI = [ 
+  // ✅ วาง ABI ของ DNXStaking.sol ที่คุณคัดลอกจาก Remix หรือ BscScan ที่ Verify แล้ว
+];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const userAddress = await signer.getAddress();
+    document.querySelector("#walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    alert("✅ เชื่อมต่อสำเร็จ: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const contractABI = [ 
+  // ✅ วาง ABI ของ DNXStaking.sol ที่คุณคัดลอกจาก Remix หรือ BscScan ที่ Verify แล้ว
+];
+
+async function connectWallet() {
+  if (window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+    const userAddress = await signer.getAddress();
+    document.querySelector("#walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    alert("✅ เชื่อมต่อสำเร็จ: " + userAddress);
+  } else {
+    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");
+  }
+}

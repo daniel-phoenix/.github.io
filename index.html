@@ -17,14 +17,15 @@ body{
 }
 header{
   width:100%;background:linear-gradient(90deg,#111,#222,#111);
-  border-bottom:2px solid var(--gold);padding:10px 0;position:fixed;top:0;left:0;z-index:10;
+  border-bottom:2px solid var(--gold);padding:10px 20px;
+  position:fixed;top:0;left:0;z-index:10;
   box-shadow:0 0 20px rgba(255,215,0,.4);
   display:flex;justify-content:space-between;align-items:center;
-  padding:10px 20px;
 }
 #connectBtn{
-  background:linear-gradient(90deg,#ffd700,#ff9d00);border:none;
-  color:#000;font-weight:bold;padding:10px 25px;border-radius:20px;
+  background:linear-gradient(90deg,#ffd700,#ff9d00);
+  border:none;color:#000;font-weight:bold;
+  padding:10px 25px;border-radius:20px;
   cursor:pointer;animation:glow 2s infinite alternate;
 }
 @keyframes glow{
@@ -36,100 +37,32 @@ header{
   color:var(--gold);font-weight:bold;padding:8px 15px;
   border-radius:12px;cursor:pointer;
 }
-#logo{
-  position:fixed;top:70px;left:25px;width:90px;height:90px;
-  border-radius:50%;
-  background:url('dnx_logo.png') center/cover no-repeat;
-  box-shadow:
-    0 0 20px rgba(255,215,0,0.7),
-    inset 0 0 25px rgba(255,215,0,0.6);
-  animation:spin 12s linear infinite;
-  z-index:10;
-}
-@keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
-#flash,#ripple{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  border-radius:50%;pointer-events:none;z-index:1;
-}
-#flash{
-  width:0;height:0;background:radial-gradient(circle,rgba(255,215,0,.8),transparent);
-  opacity:0;
-}
-#ripple{
-  width:100px;height:100px;border:3px solid rgba(255,215,0,.6);
-  opacity:0;
-}
 h1{margin-top:160px;color:var(--gold);font-size:2em;text-shadow:0 0 30px rgba(255,215,0,.7);}
-p{opacity:.9;margin:10px 0 25px;}
-.card{
-  background:rgba(0,0,0,.7);border:2px solid var(--gold);border-radius:16px;
-  box-shadow:0 0 30px rgba(255,215,0,.3);padding:25px;
-  width:min(95%,600px);z-index:2;
-}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;}
-.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px;}
-.stat .label{font-size:14px;opacity:.8}.stat .value{font-weight:bold;color:var(--gold);}
-#pendingUSD{font-size:13px;color:#aaa;margin-top:2px;}
-input{
-  width:80%;padding:10px;margin:10px 0;border-radius:10px;
-  border:1px solid var(--neon);background:#000;color:var(--neon);text-align:center;
-}
-button{
-  border:none;border-radius:10px;padding:10px 18px;margin:5px;
-  font-weight:bold;cursor:pointer;
-}
-.btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;}
-.gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;}
-button:hover{transform:scale(1.05);}
-footer{margin-top:20px;color:#888;font-size:14px;}
-.glowValue{animation:glowReward 1.5s ease;}
-@keyframes glowReward{
-  0%{text-shadow:0 0 10px var(--gold);}
-  100%{text-shadow:none;}
-}
+.card{background:rgba(0,0,0,.7);border:2px solid var(--gold);border-radius:16px;
+box-shadow:0 0 30px rgba(255,215,0,.3);padding:25px;width:min(95%,600px);z-index:2;}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px;margin:5px;}
+.stat .label{font-size:14px;opacity:.8}
+.stat .value{font-weight:bold;color:var(--gold);}
 </style>
 </head>
 <body>
+
 <header>
   <button id="connectBtn">🔗 Connect Wallet</button>
   <button id="langToggle">EN</button>
 </header>
 
-<div id="logo"></div>
-<div id="flash"></div>
-<div id="ripple"></div>
-
-<h1 id="title">🌾 DNX FARM ULTRA++</h1>
-<p id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</p>
+<h1>🌾 DNX FARM ULTRA++</h1>
 
 <div class="card">
-  <div class="stats">
-    <div class="stat"><div class="label" id="walletLabel">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-    <div class="stat"><div class="label" id="balLabel">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-    <div class="stat"><div class="label" id="stakeLabel">Stake</div><div id="staked" class="value">—</div></div>
-    <div class="stat">
-      <div class="label" id="pendLabel">รางวัลค้างรับ</div>
-      <div id="pending" class="value">—</div>
-      <div id="pendingUSD">≈ — USD</div>
-    </div>
-  </div>
-
-  <input id="amount" placeholder="กรอกจำนวน DNX" />
-  <div>
-    <button id="deposit" class="btn">💰 Deposit</button>
-    <button id="withdraw" class="btn">💎 Withdraw</button>
-    <button id="claim" class="btn gold">🎁 Claim</button>
-    <button id="refresh" class="btn">🔄 Refresh</button>
-  </div>
+  <div class="stat"><div class="label">กระเป๋า:</div><div id="waddr" class="value">—</div></div>
+  <div class="stat"><div class="label">ยอด DNX ทั้งหมด:</div><div id="bal" class="value">—</div></div>
   <footer>Powered by <b>DNX Finance</b> © 2025</footer>
 </div>
 
-<!-- เสียง -->
-<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
-<audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
-<audio id="connectSound" src="https://cdn.pixabay.com/download/audio/2023/05/18/audio_588b05f527.mp3?filename=success-158050.mp3" preload="auto"></audio>
-
 <script>
+window.onload = function() {
+
 const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
 const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
 const ABIchef=[
@@ -145,131 +78,36 @@ const ABItoken=[
   "function approve(address,uint256) returns(bool)"
 ];
 
-let provider,signer,chef,token,user,dec=18,priceDNX=0;
-const $=id=>document.getElementById(id);
-const playSound=(id)=>{const s=$(id);s.currentTime=0;s.play();}
+let provider,signer,chef,token,user,dec=18;
 
-// ✅ เชื่อมต่อ MetaMask
-async function connect(){
-  playSound("clickSound");
-  if(!window.ethereum)return alert(msg('needMM'));
-  provider=new ethers.BrowserProvider(window.ethereum);
-  await provider.send("eth_requestAccounts",[]);
-  signer=await provider.getSigner();
-  user=await signer.getAddress();
-  chef=new ethers.Contract(CHEF,ABIchef,signer);
-  token=new ethers.Contract(TOKEN,ABItoken,signer);
-  dec=await token.decimals();
-  $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
-  playSound("connectSound");
-  flashRipple();
-  refreshAll();
-  startAutoUpdate();
-  fetchDNXPrice();
-}
+async function connect() {
+  console.log("🟡 เริ่มเชื่อมต่อ MetaMask...");
+  if (!window.ethereum) {
+    alert("⚠️ ไม่พบ MetaMask! กรุณาติดตั้งก่อนใช้งาน");
+    return;
+  }
 
-// เอฟเฟกต์แสง
-function flashRipple(){
-  const f=$("flash"),r=$("ripple");
-  f.style.opacity=1;f.style.width="700px";f.style.height="700px";
-  r.style.opacity=1;r.style.transform="translate(-50%,-50%) scale(1)";
-  setTimeout(()=>{f.style.transition="1s";r.style.transition="1.5s";
-  f.style.opacity=0;r.style.opacity=0;r.style.transform="translate(-50%,-50%) scale(3)";
-  setTimeout(()=>{f.style.width=r.style.width="0";f.style.height=r.style.height="0";},1000)},100);
-}
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    user = await signer.getAddress();
 
-// ดึงราคาจาก CoinGecko
-async function fetchDNXPrice(){
-  try{
-    const res=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd");
-    const data=await res.json();
-    priceDNX = data.binancecoin.usd * 0.00005; // ✳️ ตัวอย่างสมมติราคา DNX = 0.00005 ของ BNB
-  }catch(e){
-    console.warn("ไม่สามารถดึงราคา DNX ได้");
+    console.log("✅ เชื่อมต่อสำเร็จ:", user);
+    $("waddr").textContent = user.slice(0,6) + "..." + user.slice(-4);
+
+    chef = new ethers.Contract(CHEF, ABIchef, signer);
+    token = new ethers.Contract(TOKEN, ABItoken, signer);
+    dec = await token.decimals();
+  } catch (err) {
+    console.error("❌ ข้อผิดพลาด:", err);
+    alert("❌ " + err.message);
   }
 }
 
-// อัปเดตข้อมูลหลัก
-async function refreshAll(){
-  if(!signer)return;
-  const [bal,info,pending]=await Promise.all([
-    token.balanceOf(user),
-    chef.userInfo(user),
-    chef.pendingReward(user)
-  ]);
-  $("bal").textContent=(Number(ethers.formatUnits(bal,dec))).toFixed(2);
-  $("staked").textContent=(Number(ethers.formatUnits(info.amount,dec))).toFixed(2);
-  updatePending(Number(ethers.formatUnits(pending,dec)));
-}
+const $ = id => document.getElementById(id);
+$("connectBtn").addEventListener("click", connect);
 
-// แสดงรางวัล + มูลค่า USD
-let lastReward=0;
-function updatePending(newVal){
-  if(newVal!==lastReward){
-    $("pending").textContent=newVal.toFixed(4);
-    const usd=(newVal*priceDNX).toFixed(2);
-    $("pendingUSD").textContent=`≈ ${usd} USD`;
-    $("pending").classList.add("glowValue");
-    setTimeout(()=>$("pending").classList.remove("glowValue"),1000);
-    lastReward=newVal;
-  }
-}
-
-// อัปเดตอัตโนมัติทุก 10 วินาที
-function startAutoUpdate(){
-  setInterval(async()=>{
-    if(signer){
-      const pending=await chef.pendingReward(user);
-      updatePending(Number(ethers.formatUnits(pending,dec)));
-    }
-  },10000);
-}
-
-// ฟังก์ชันฝาก ถอน
-async function act(fn){
-  playSound("clickSound");
-  try{
-    const val=$("amount").value.trim();if(!val)return;
-    const amt=ethers.parseUnits(val,dec);
-    if(fn==="deposit"){
-      const allow=await token.allowance(user,CHEF);
-      if(allow<amt){const txa=await token.approve(CHEF,amt);await txa.wait();}
-    }
-    const tx=await chef[fn](amt);await tx.wait();refreshAll();
-  }catch(e){alert("❌ "+e.message);}
-}
-
-// เคลมรางวัล
-async function claim(){
-  playSound("rewardSound");
-  try{
-    const tx=await chef.deposit(0);await tx.wait();refreshAll();
-  }catch(e){alert("❌ "+e.message);}
-}
-
-// ปุ่ม
-$("connectBtn").onclick=connect;
-$("deposit").onclick=()=>act("deposit");
-$("withdraw").onclick=()=>act("withdraw");
-$("claim").onclick=claim;
-$("refresh").onclick=()=>{playSound("clickSound");refreshAll();}
-
-// ระบบภาษา
-let lang="th";
-const text={
-  th:{title:"🌾 DNX FARM ULTRA++",subtitle:"ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix",walletLabel:"กระเป๋า",balLabel:"ยอด DNX ทั้งหมด",stakeLabel:"ที่กำลัง Stake",pendLabel:"รางวัลค้างรับ",needMM:"⚠️ กรุณาติดตั้ง MetaMask ก่อน !"},
-  en:{title:"🌾 DNX FARM ULTRA++",subtitle:"Full-featured farming system to earn rewards from Dynamix",walletLabel:"Wallet",balLabel:"DNX Balance",stakeLabel:"Staked",pendLabel:"Pending Reward",needMM:"⚠️ Please install MetaMask first!"}
-};
-function msg(k){return text[lang][k]||k;}
-$("langToggle").onclick=()=>{
-  lang=lang==="th"?"en":"th";
-  $("langToggle").textContent=lang==="th"?"EN":"TH";
-  $("title").textContent=text[lang].title;
-  $("subtitle").textContent=text[lang].subtitle;
-  $("walletLabel").textContent=text[lang].walletLabel;
-  $("balLabel").textContent=text[lang].balLabel;
-  $("stakeLabel").textContent=text[lang].stakeLabel;
-  $("pendLabel").textContent=text[lang].pendLabel;
 };
 </script>
 </body>

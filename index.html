@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🌾 DNX FARM ULTRA++ PRO</title>
+<title>🌾 DNX FARM ULTRA++</title>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -41,22 +40,35 @@ header{
   position:fixed;top:70px;left:25px;width:90px;height:90px;
   border-radius:50%;
   background:url('dnx_logo.png') center/cover no-repeat;
-  box-shadow:0 0 20px rgba(255,215,0,0.7),inset 0 0 25px rgba(255,215,0,0.6);
+  box-shadow:
+    0 0 20px rgba(255,215,0,0.7),
+    inset 0 0 25px rgba(255,215,0,0.6);
   animation:spin 12s linear infinite;
   z-index:10;
 }
 @keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+#flash,#ripple{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;pointer-events:none;z-index:1;
+}
+#flash{
+  width:0;height:0;background:radial-gradient(circle,rgba(255,215,0,.8),transparent);
+  opacity:0;
+}
+#ripple{
+  width:100px;height:100px;border:3px solid rgba(255,215,0,.6);
+  opacity:0;
+}
 h1{margin-top:160px;color:var(--gold);font-size:2em;text-shadow:0 0 30px rgba(255,215,0,.7);}
 p{opacity:.9;margin:10px 0 25px;}
 .card{
   background:rgba(0,0,0,.7);border:2px solid var(--gold);border-radius:16px;
   box-shadow:0 0 30px rgba(255,215,0,.3);padding:25px;
-  width:min(95%,650px);z-index:2;
+  width:min(95%,600px);z-index:2;
 }
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;}
 .stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px;}
 .stat .label{font-size:14px;opacity:.8}.stat .value{font-weight:bold;color:var(--gold);}
-#pendingUSD{font-size:13px;color:#aaa;margin-top:2px;}
 input{
   width:80%;padding:10px;margin:10px 0;border-radius:10px;
   border:1px solid var(--neon);background:#000;color:var(--neon);text-align:center;
@@ -70,8 +82,10 @@ button{
 button:hover{transform:scale(1.05);}
 footer{margin-top:20px;color:#888;font-size:14px;}
 .glowValue{animation:glowReward 1.5s ease;}
-@keyframes glowReward{0%{text-shadow:0 0 10px var(--gold);}100%{text-shadow:none;}}
-canvas{margin-top:25px;width:100%!important;height:280px!important;}
+@keyframes glowReward{
+  0%{text-shadow:0 0 10px var(--gold);}
+  100%{text-shadow:none;}
+}
 </style>
 </head>
 <body>
@@ -81,20 +95,18 @@ canvas{margin-top:25px;width:100%!important;height:280px!important;}
 </header>
 
 <div id="logo"></div>
+<div id="flash"></div>
+<div id="ripple"></div>
 
-<h1 id="title">🌾 DNX FARM ULTRA++ PRO</h1>
-<p id="subtitle">ระบบฟาร์มเต็มรูปแบบ พร้อมกราฟรางวัลเรียลไทม์</p>
+<h1 id="title">🌾 DNX FARM ULTRA++</h1>
+<p id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</p>
 
 <div class="card">
   <div class="stats">
     <div class="stat"><div class="label" id="walletLabel">กระเป๋า</div><div id="waddr" class="value">—</div></div>
     <div class="stat"><div class="label" id="balLabel">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
     <div class="stat"><div class="label" id="stakeLabel">Stake</div><div id="staked" class="value">—</div></div>
-    <div class="stat">
-      <div class="label" id="pendLabel">รางวัลค้างรับ</div>
-      <div id="pending" class="value">—</div>
-      <div id="pendingUSD">≈ — USD</div>
-    </div>
+    <div class="stat"><div class="label" id="pendLabel">รางวัลค้างรับ</div><div id="pending" class="value">—</div></div>
   </div>
 
   <input id="amount" placeholder="กรอกจำนวน DNX" />
@@ -104,24 +116,21 @@ canvas{margin-top:25px;width:100%!important;height:280px!important;}
     <button id="claim" class="btn gold">🎁 Claim</button>
     <button id="refresh" class="btn">🔄 Refresh</button>
   </div>
-
-  <!-- 🔥 กราฟรางวัล -->
-  <canvas id="rewardChart"></canvas>
-
   <footer>Powered by <b>DNX Finance</b> © 2025</footer>
 </div>
 
+<!-- เสียง -->
 <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
 <audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
 <audio id="connectSound" src="https://cdn.pixabay.com/download/audio/2023/05/18/audio_588b05f527.mp3?filename=success-158050.mp3" preload="auto"></audio>
 
 <script>
-const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
-const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
+const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C'; 
+const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62'; 
 const ABIchef=[
   "function deposit(uint256) external",
   "function withdraw(uint256) external",
-  "function pendingReward(address) view returns(uint256)",
+  "function pendingReward(address) view returns(uint256)", // ✅ เพิ่มฟังก์ชันรางวัลค้างรับ
   "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
 const ABItoken=[
@@ -131,17 +140,9 @@ const ABItoken=[
   "function approve(address,uint256) returns(bool)"
 ];
 
-let provider,signer,chef,token,user,dec=18,priceDNX=0,lastReward=0;
+let provider,signer,chef,token,user,dec=18;
 const $=id=>document.getElementById(id);
 const playSound=(id)=>{const s=$(id);s.currentTime=0;s.play();}
-
-// 🔹 กราฟตั้งค่า
-const ctx=document.getElementById("rewardChart");
-const chartData={labels:[],datasets:[{label:"DNX Reward",data:[],borderColor:"#ffd700",borderWidth:2,fill:false,tension:0.3}]};
-const rewardChart=new Chart(ctx,{type:"line",data:chartData,options:{
-  scales:{x:{ticks:{color:"#aaa"}},y:{ticks:{color:"#aaa"}}},
-  plugins:{legend:{labels:{color:"#ffd700"}}}
-}});
 
 // ✅ เชื่อมต่อ MetaMask
 async function connect(){
@@ -156,42 +157,41 @@ async function connect(){
   dec=await token.decimals();
   $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
   playSound("connectSound");
-  refreshAll(); startAutoUpdate(); fetchDNXPrice();
+  flashRipple();
+  refreshAll();
+  startAutoUpdate();
 }
 
-// ดึงราคา DNX
-async function fetchDNXPrice(){
-  try{
-    const res=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd");
-    const data=await res.json();
-    priceDNX = data.binancecoin.usd * 0.00005; 
-  }catch(e){console.warn("ไม่สามารถดึงราคา DNX ได้");}
+// เอฟเฟกต์แสง
+function flashRipple(){
+  const f=$("flash"),r=$("ripple");
+  f.style.opacity=1;f.style.width="700px";f.style.height="700px";
+  r.style.opacity=1;r.style.transform="translate(-50%,-50%) scale(1)";
+  setTimeout(()=>{f.style.transition="1s";r.style.transition="1.5s";
+  f.style.opacity=0;r.style.opacity=0;r.style.transform="translate(-50%,-50%) scale(3)";
+  setTimeout(()=>{f.style.width=r.style.width="0";f.style.height=r.style.height="0";},1000)},100);
 }
 
-// ดึงข้อมูลทั้งหมด
+// อัปเดตข้อมูลหลัก
 async function refreshAll(){
   if(!signer)return;
   const [bal,info,pending]=await Promise.all([
-    token.balanceOf(user),chef.userInfo(user),chef.pendingReward(user)
+    token.balanceOf(user),
+    chef.userInfo(user),
+    chef.pendingReward(user)
   ]);
   $("bal").textContent=(Number(ethers.formatUnits(bal,dec))).toFixed(2);
   $("staked").textContent=(Number(ethers.formatUnits(info.amount,dec))).toFixed(2);
   updatePending(Number(ethers.formatUnits(pending,dec)));
 }
 
-// อัปเดตรางวัล + กราฟ
+// แสดงรางวัลแบบนุ่มนวล
+let lastReward=0;
 function updatePending(newVal){
   if(newVal!==lastReward){
     $("pending").textContent=newVal.toFixed(4);
-    const usd=(newVal*priceDNX).toFixed(2);
-    $("pendingUSD").textContent=`≈ ${usd} USD`;
     $("pending").classList.add("glowValue");
     setTimeout(()=>$("pending").classList.remove("glowValue"),1000);
-    const time=new Date().toLocaleTimeString();
-    chartData.labels.push(time);
-    chartData.datasets[0].data.push(newVal);
-    if(chartData.labels.length>10){chartData.labels.shift();chartData.datasets[0].data.shift();}
-    rewardChart.update();
     lastReward=newVal;
   }
 }
@@ -206,7 +206,7 @@ function startAutoUpdate(){
   },10000);
 }
 
-// ฟังก์ชันฝาก ถอน เคลม
+// ฟังก์ชันฝาก ถอน
 async function act(fn){
   playSound("clickSound");
   try{
@@ -219,6 +219,8 @@ async function act(fn){
     const tx=await chef[fn](amt);await tx.wait();refreshAll();
   }catch(e){alert("❌ "+e.message);}
 }
+
+// เคลมรางวัล
 async function claim(){
   playSound("rewardSound");
   try{
@@ -231,13 +233,13 @@ $("connectBtn").onclick=connect;
 $("deposit").onclick=()=>act("deposit");
 $("withdraw").onclick=()=>act("withdraw");
 $("claim").onclick=claim;
-$("refresh").onclick=()=>refreshAll();
+$("refresh").onclick=()=>{playSound("clickSound");refreshAll();}
 
-// ภาษา
+// ระบบภาษา
 let lang="th";
 const text={
-  th:{title:"🌾 DNX FARM ULTRA++ PRO",subtitle:"ระบบฟาร์มเต็มรูปแบบ พร้อมกราฟรางวัลเรียลไทม์",walletLabel:"กระเป๋า",balLabel:"ยอด DNX ทั้งหมด",stakeLabel:"ที่กำลัง Stake",pendLabel:"รางวัลค้างรับ",needMM:"⚠️ กรุณาติดตั้ง MetaMask ก่อน !"},
-  en:{title:"🌾 DNX FARM ULTRA++ PRO",subtitle:"Full-featured farming system with live reward chart",walletLabel:"Wallet",balLabel:"DNX Balance",stakeLabel:"Staked",pendLabel:"Pending Reward",needMM:"⚠️ Please install MetaMask first!"}
+  th:{title:"🌾 DNX FARM ULTRA++",subtitle:"ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix",walletLabel:"กระเป๋า",balLabel:"ยอด DNX ทั้งหมด",stakeLabel:"ที่กำลัง Stake",pendLabel:"รางวัลค้างรับ",needMM:"⚠️ กรุณาติดตั้ง MetaMask ก่อน !"},
+  en:{title:"🌾 DNX FARM ULTRA++",subtitle:"Full-featured farming system to earn rewards from Dynamix",walletLabel:"Wallet",balLabel:"DNX Balance",stakeLabel:"Staked",pendLabel:"Pending Reward",needMM:"⚠️ Please install MetaMask first!"}
 };
 function msg(k){return text[lang][k]||k;}
 $("langToggle").onclick=()=>{

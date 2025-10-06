@@ -4,8 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>🌾 DNX FARM ULTRA++</title>
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -90,6 +89,7 @@ footer{margin-top:20px;color:#888;font-size:14px;}
 }
 </style>
 </head>
+
 <body>
 <header>
   <button id="connectBtn">🔗 Connect Wallet</button>
@@ -130,8 +130,11 @@ footer{margin-top:20px;color:#888;font-size:14px;}
 <audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
 <audio id="connectSound" src="https://cdn.pixabay.com/download/audio/2023/05/18/audio_588b05f527.mp3?filename=success-158050.mp3" preload="auto"></audio>
 
+<!-- ✅ โหลด ethers.js ก่อนสคริปต์หลัก -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+
 <script>
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
   const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
   const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
   const ABIchef=[
@@ -147,9 +150,9 @@ window.addEventListener("DOMContentLoaded", () => {
     "function approve(address,uint256) returns(bool)"
   ];
 
-  let provider,signer,chef,token,user,dec=18,priceDNX=0;
+  let provider,signer,chef,token,user,dec=18;
   const $=id=>document.getElementById(id);
-  const playSound=(id)=>{const s=$(id);s.currentTime=0;s.play();}
+  const playSound=id=>{const s=$(id);s.currentTime=0;s.play();}
 
   async function connect(){
     playSound("clickSound");

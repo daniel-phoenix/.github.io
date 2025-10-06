@@ -86,11 +86,11 @@ footer{margin-top:20px;color:#888;font-size:14px;}
 
 <div class="card">
   <div class="stats">
-    <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-    <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-    <div class="stat"><div class="label">Stake</div><div id="staked" class="value">—</div></div>
+    <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+    <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+    <div class="stat"><div class="label" id="lblStake">Stake</div><div id="staked" class="value">—</div></div>
     <div class="stat">
-      <div class="label">รางวัลค้างรับ</div>
+      <div class="label" id="lblReward">รางวัลค้างรับ</div>
       <div id="pending" class="value">—</div>
       <div id="pendingUSD">≈ — USD</div>
     </div>
@@ -106,42 +106,150 @@ footer{margin-top:20px;color:#888;font-size:14px;}
   <footer>Powered by <b>DNX Finance</b> © 2025</footer>
 </div>
 
-<!-- 🔊 เสียงจาก CDN ที่ใช้งานได้แน่นอน -->
+<!-- เสียง -->
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-interface-click-1126.mp3" preload="auto"></audio>
 <audio id="rewardSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-approved-mission-205.mp3" preload="auto"></audio>
 <audio id="connectSound" src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkle-917.mp3" preload="auto"></audio>
 
-<!-- ✅ ใช้ Ethers.js เวอร์ชัน 5 -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
 window.addEventListener("load", () => {
   const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
   const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
-
-  let provider,signer,user;
+  const ABIchef=[
+    "function deposit(uint256) external",
+    "function withdraw(uint256) external",
+    "function pendingReward(address) view returns(uint256)",
+    "function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
+  ];
+  const ABItoken=[
+    "function balanceOf(address) view returns(uint256)",
+    "function decimals() view returns(uint8)",
+    "function allowance(address,address) view returns(uint256)",
+    "function approve(address,uint256) returns(bool)"
+  ];
+  let provider,signer,user,chef,token,dec=18;
   const $=id=>document.getElementById(id);
-  const playSound=id=>{const s=$(id);s.currentTime=0;s.play();}
+  const play=id=>{const s=$(id);if(s){s.currentTime=0;s.play().catch(()=>{});}};
 
-  async function connect(){
-    playSound("clickSound");
-    if(!window.ethereum){alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");return;}
-    console.log("🔗 เริ่มเชื่อมต่อ MetaMask...");
-    try{
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      signer = provider.getSigner();
-      user = await signer.getAddress();
-      $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
-      console.log("✅ เชื่อมต่อสำเร็จ:", user);
-      playSound("connectSound");
-    }catch(e){
-      console.error("❌ Error:", e);
-      alert("❌ "+e.message);
+  // === Multi-Language ===
+  let lang="TH";
+  const text={
+    TH:{
+      connect:"🔗 เชื่อมกระเป๋า",
+      wallet:"กระเป๋า",
+      total:"ยอด DNX ทั้งหมด",
+      stake:"จำนวน Stake",
+      reward:"รางวัลค้างรับ",
+      placeholder:"กรอกจำนวน DNX",
+      deposit:"💰 ฝาก (Deposit)",
+      withdraw:"💎 ถอน (Withdraw)",
+      claim:"🎁 รับรางวัล (Claim)",
+      refresh:"🔄 รีเฟรช",
+      subtitle:"ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix",
+      toggle:"EN"
+    },
+    EN:{
+      connect:"🔗 Connect Wallet",
+      wallet:"Wallet",
+      total:"Total DNX",
+      stake:"Staked",
+      reward:"Pending Reward",
+      placeholder:"Enter DNX amount",
+      deposit:"💰 Deposit",
+      withdraw:"💎 Withdraw",
+      claim:"🎁 Claim",
+      refresh:"🔄 Refresh",
+      subtitle:"Full farming system to earn Dynamix rewards",
+      toggle:"TH"
     }
+  };
+  function setLang(l){
+    lang=l;
+    const t=text[l];
+    $("connectBtn").textContent=t.connect;
+    $("lblWallet").textContent=t.wallet;
+    $("lblBal").textContent=t.total;
+    $("lblStake").textContent=t.stake;
+    $("lblReward").textContent=t.reward;
+    $("amount").placeholder=t.placeholder;
+    $("deposit").textContent=t.deposit;
+    $("withdraw").textContent=t.withdraw;
+    $("claim").textContent=t.claim;
+    $("refresh").textContent=t.refresh;
+    $("subtitle").textContent=t.subtitle;
+    $("langToggle").textContent=t.toggle;
+  }
+  $("langToggle").addEventListener("click",()=>setLang(lang==="TH"?"EN":"TH"));
+
+  // === Connect MetaMask ===
+  async function connect(){
+    play("clickSound");
+    if(!window.ethereum){alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");return;}
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner(); user=await signer.getAddress();
+    $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
+    token=new ethers.Contract(TOKEN,ABItoken,signer);
+    chef=new ethers.Contract(CHEF,ABIchef,signer);
+    dec=await token.decimals().catch(()=>18);
+    play("connectSound");
+    refreshAll();
   }
 
-  $("connectBtn").addEventListener("click", connect);
+  async function refreshAll(){
+    if(!signer) return;
+    const [bal,st,p]=await Promise.all([
+      token.balanceOf(user),
+      chef.stakes(user),
+      chef.pendingReward(user)
+    ]);
+    $("bal").textContent=ethers.utils.formatUnits(bal,dec);
+    $("staked").textContent=ethers.utils.formatUnits(st.amount,dec);
+    $("pending").textContent=ethers.utils.formatUnits(p,dec);
+  }
+
+  async function ensureApprove(a){
+    const allow=await token.allowance(user,CHEF);
+    if(allow.gte(a)) return;
+    const tx=await token.approve(CHEF,ethers.constants.MaxUint256);
+    await tx.wait();
+  }
+
+  async function deposit(){
+    if(!signer) return alert("Connect wallet first");
+    const amt=$("amount").value; if(!amt) return alert("ใส่จำนวนก่อน");
+    const a=ethers.utils.parseUnits(amt,dec);
+    await ensureApprove(a);
+    const tx=await chef.deposit(a); await tx.wait();
+    play("rewardSound"); alert("✅ ฝากสำเร็จ");
+    $("amount").value=""; refreshAll();
+  }
+
+  async function withdraw(){
+    if(!signer) return alert("Connect wallet first");
+    const amt=$("amount").value; if(!amt) return alert("ใส่จำนวนก่อน");
+    const a=ethers.utils.parseUnits(amt,dec);
+    const tx=await chef.withdraw(a); await tx.wait();
+    play("rewardSound"); alert("✅ ถอนสำเร็จ");
+    $("amount").value=""; refreshAll();
+  }
+
+  async function claim(){
+    if(!signer) return alert("Connect wallet first");
+    const tx=await chef.deposit(0); await tx.wait();
+    play("rewardSound"); alert("✅ รับรางวัลสำเร็จ");
+    refreshAll();
+  }
+
+  $("connectBtn").onclick=connect;
+  $("deposit").onclick=deposit;
+  $("withdraw").onclick=withdraw;
+  $("claim").onclick=claim;
+  $("refresh").onclick=refreshAll;
+
+  setLang("TH");
 });
 </script>
 </body>

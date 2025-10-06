@@ -47,18 +47,6 @@ header{
   z-index:10;
 }
 @keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
-#flash,#ripple{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  border-radius:50%;pointer-events:none;z-index:1;
-}
-#flash{
-  width:0;height:0;background:radial-gradient(circle,rgba(255,215,0,.8),transparent);
-  opacity:0;
-}
-#ripple{
-  width:100px;height:100px;border:3px solid rgba(255,215,0,.6);
-  opacity:0;
-}
 h1{margin-top:160px;color:var(--gold);font-size:2em;text-shadow:0 0 30px rgba(255,215,0,.7);}
 p{opacity:.9;margin:10px 0 25px;}
 .card{
@@ -82,11 +70,6 @@ button{
 .gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;}
 button:hover{transform:scale(1.05);}
 footer{margin-top:20px;color:#888;font-size:14px;}
-.glowValue{animation:glowReward 1.5s ease;}
-@keyframes glowReward{
-  0%{text-shadow:0 0 10px var(--gold);}
-  100%{text-shadow:none;}
-}
 </style>
 </head>
 
@@ -97,19 +80,17 @@ footer{margin-top:20px;color:#888;font-size:14px;}
 </header>
 
 <div id="logo"></div>
-<div id="flash"></div>
-<div id="ripple"></div>
 
 <h1 id="title">🌾 DNX FARM ULTRA++</h1>
 <p id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</p>
 
 <div class="card">
   <div class="stats">
-    <div class="stat"><div class="label" id="walletLabel">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-    <div class="stat"><div class="label" id="balLabel">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-    <div class="stat"><div class="label" id="stakeLabel">Stake</div><div id="staked" class="value">—</div></div>
+    <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+    <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+    <div class="stat"><div class="label">Stake</div><div id="staked" class="value">—</div></div>
     <div class="stat">
-      <div class="label" id="pendLabel">รางวัลค้างรับ</div>
+      <div class="label">รางวัลค้างรับ</div>
       <div id="pending" class="value">—</div>
       <div id="pendingUSD">≈ — USD</div>
     </div>
@@ -125,32 +106,20 @@ footer{margin-top:20px;color:#888;font-size:14px;}
   <footer>Powered by <b>DNX Finance</b> © 2025</footer>
 </div>
 
-<!-- เสียง -->
-<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
-<audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
-<audio id="connectSound" src="https://cdn.pixabay.com/download/audio/2023/05/18/audio_588b05f527.mp3?filename=success-158050.mp3" preload="auto"></audio>
+<!-- 🔊 เสียงจาก CDN ที่ใช้งานได้แน่นอน -->
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-interface-click-1126.mp3" preload="auto"></audio>
+<audio id="rewardSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-approved-mission-205.mp3" preload="auto"></audio>
+<audio id="connectSound" src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkle-917.mp3" preload="auto"></audio>
 
-<!-- ✅ โหลด ethers.js ก่อนสคริปต์หลัก -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<!-- ✅ ใช้ Ethers.js เวอร์ชัน 5 -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
 window.addEventListener("load", () => {
   const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
   const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
-  const ABIchef=[
-    "function deposit(uint256) external",
-    "function withdraw(uint256) external",
-    "function pendingReward(address) view returns(uint256)",
-    "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
-  ];
-  const ABItoken=[
-    "function balanceOf(address) view returns(uint256)",
-    "function decimals() view returns(uint8)",
-    "function allowance(address,address) view returns(uint256)",
-    "function approve(address,uint256) returns(bool)"
-  ];
 
-  let provider,signer,chef,token,user,dec=18;
+  let provider,signer,user;
   const $=id=>document.getElementById(id);
   const playSound=id=>{const s=$(id);s.currentTime=0;s.play();}
 
@@ -159,11 +128,11 @@ window.addEventListener("load", () => {
     if(!window.ethereum){alert("⚠️ กรุณาติดตั้ง MetaMask ก่อนใช้งาน!");return;}
     console.log("🔗 เริ่มเชื่อมต่อ MetaMask...");
     try{
-      provider=new ethers.BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts",[]);
-      signer=await provider.getSigner();
-      user=await signer.getAddress();
-      $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      user = await signer.getAddress();
+      $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
       console.log("✅ เชื่อมต่อสำเร็จ:", user);
       playSound("connectSound");
     }catch(e){

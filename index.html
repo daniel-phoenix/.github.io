@@ -69,6 +69,7 @@ p{opacity:.9;margin:10px 0 25px;}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;}
 .stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px;}
 .stat .label{font-size:14px;opacity:.8}.stat .value{font-weight:bold;color:var(--gold);}
+#pendingUSD{font-size:13px;color:#aaa;margin-top:2px;}
 input{
   width:80%;padding:10px;margin:10px 0;border-radius:10px;
   border:1px solid var(--neon);background:#000;color:var(--neon);text-align:center;
@@ -106,7 +107,11 @@ footer{margin-top:20px;color:#888;font-size:14px;}
     <div class="stat"><div class="label" id="walletLabel">กระเป๋า</div><div id="waddr" class="value">—</div></div>
     <div class="stat"><div class="label" id="balLabel">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
     <div class="stat"><div class="label" id="stakeLabel">Stake</div><div id="staked" class="value">—</div></div>
-    <div class="stat"><div class="label" id="pendLabel">รางวัลค้างรับ</div><div id="pending" class="value">—</div></div>
+    <div class="stat">
+      <div class="label" id="pendLabel">รางวัลค้างรับ</div>
+      <div id="pending" class="value">—</div>
+      <div id="pendingUSD">≈ — USD</div>
+    </div>
   </div>
 
   <input id="amount" placeholder="กรอกจำนวน DNX" />
@@ -125,12 +130,12 @@ footer{margin-top:20px;color:#888;font-size:14px;}
 <audio id="connectSound" src="https://cdn.pixabay.com/download/audio/2023/05/18/audio_588b05f527.mp3?filename=success-158050.mp3" preload="auto"></audio>
 
 <script>
-const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C'; 
-const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62'; 
+const CHEF='0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C';
+const TOKEN='0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62';
 const ABIchef=[
   "function deposit(uint256) external",
   "function withdraw(uint256) external",
-  "function pendingReward(address) view returns(uint256)", // ✅ เพิ่มฟังก์ชันรางวัลค้างรับ
+  "function pendingReward(address) view returns(uint256)",
   "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
 const ABItoken=[
@@ -140,7 +145,7 @@ const ABItoken=[
   "function approve(address,uint256) returns(bool)"
 ];
 
-let provider,signer,chef,token,user,dec=18;
+let provider,signer,chef,token,user,dec=18,priceDNX=0;
 const $=id=>document.getElementById(id);
 const playSound=(id)=>{const s=$(id);s.currentTime=0;s.play();}
 
@@ -160,6 +165,7 @@ async function connect(){
   flashRipple();
   refreshAll();
   startAutoUpdate();
+  fetchDNXPrice();
 }
 
 // เอฟเฟกต์แสง
@@ -170,6 +176,17 @@ function flashRipple(){
   setTimeout(()=>{f.style.transition="1s";r.style.transition="1.5s";
   f.style.opacity=0;r.style.opacity=0;r.style.transform="translate(-50%,-50%) scale(3)";
   setTimeout(()=>{f.style.width=r.style.width="0";f.style.height=r.style.height="0";},1000)},100);
+}
+
+// ดึงราคาจาก CoinGecko
+async function fetchDNXPrice(){
+  try{
+    const res=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd");
+    const data=await res.json();
+    priceDNX = data.binancecoin.usd * 0.00005; // ✳️ ตัวอย่างสมมติราคา DNX = 0.00005 ของ BNB
+  }catch(e){
+    console.warn("ไม่สามารถดึงราคา DNX ได้");
+  }
 }
 
 // อัปเดตข้อมูลหลัก
@@ -185,11 +202,13 @@ async function refreshAll(){
   updatePending(Number(ethers.formatUnits(pending,dec)));
 }
 
-// แสดงรางวัลแบบนุ่มนวล
+// แสดงรางวัล + มูลค่า USD
 let lastReward=0;
 function updatePending(newVal){
   if(newVal!==lastReward){
     $("pending").textContent=newVal.toFixed(4);
+    const usd=(newVal*priceDNX).toFixed(2);
+    $("pendingUSD").textContent=`≈ ${usd} USD`;
     $("pending").classList.add("glowValue");
     setTimeout(()=>$("pending").classList.remove("glowValue"),1000);
     lastReward=newVal;

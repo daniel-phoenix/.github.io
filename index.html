@@ -75,17 +75,13 @@ footer{margin-top:14px;color:#888;font-size:14px}
 <script>
 window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03"; // ✅ MasterChef
+const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
 const PANCAKE_API="https://api.pancakeswap.info/api/v2/tokens/"+TOKEN;
-
 const ABIchef=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
- "function rewardPerBlock() view returns(uint256)",
- "function lastRewardBlock() view returns(uint256)",
- "function accDNXPerShare() view returns(uint256)",
- "function updatePool() external"
+ "function pendingReward(address) view returns(uint256)",
+ "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
 const ABItoken=[
  "function balanceOf(address) view returns(uint256)",
@@ -93,21 +89,20 @@ const ABItoken=[
  "function allowance(address,address) view returns(uint256)",
  "function approve(address,uint256) returns(bool)"
 ];
-
 const $=id=>document.getElementById(id);
-const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(4)}catch{return "0.00"}};
 const play=id=>{const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
+const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}};
 let provider,signer,user,token,chef,dec=18,priceUSD=0;
-let rewardPerBlock=0,lastBlock=0,accPerShare=0,stakeAmount=0,pendingDisplay=0,timer=null;
 
-function showMsg(msg,color="gold"){let box=$("msgBox");if(!box){box=document.createElement("div");Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});box.id="msgBox";document.body.appendChild(box);}box.textContent=msg;setTimeout(()=>box.remove(),3000);}
+function showMsg(msg,color="gold"){let box=$("msgBox");if(!box){box=document.createElement("div");Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});box.id="msgBox";document.body.appendChild(box);}box.textContent=msg;setTimeout(()=>box.remove(),2500);}
 
-let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
-EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",needConnect:"Please connect wallet first"}};
-function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("connectBtn").textContent=L.connect;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
-$("langToggle").addEventListener("click",()=>{play("clickSound");lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();});
-applyLang();
+$("refreshSmall").addEventListener("click",async()=>{
+ play("clickSound");
+ $("refreshSmall").textContent="⏳ กำลังอัปเดต...";
+ await refreshData();
+ $("refreshSmall").textContent="✅ อัปเดตแล้ว";
+ setTimeout(()=>{$("refreshSmall").textContent="🔄 Refresh";},2000);
+});
 
 async function connect(){
  if(!window.ethereum)return showMsg("❌ ไม่มี MetaMask","red");
@@ -119,9 +114,9 @@ async function connect(){
  token=new ethers.Contract(TOKEN,ABItoken,signer);
  chef=new ethers.Contract(CHEF,ABIchef,signer);
  dec=await token.decimals();
- rewardPerBlock=await chef.rewardPerBlock();
  $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
- play("rewardSound");showMsg("✅ เชื่อมต่อแล้ว");
+ play("rewardSound");
+ showMsg("✅ เชื่อมต่อแล้ว");
  refreshData();
  }catch(e){console.error(e);showMsg("❌ เชื่อมไม่สำเร็จ","red");}
 }
@@ -132,38 +127,20 @@ async function ensureApprove(amount){const allow=await token.allowance(user,CHEF
 async function refreshData(){
  if(!user)return;
  try{
- const [bal,info,acc,rewardBlk,lastBlk]=await Promise.all([
-   token.balanceOf(user),
-   chef.userInfo(user),
-   chef.accDNXPerShare(),
-   chef.rewardPerBlock(),
-   chef.lastRewardBlock()
+ const [bal,info,pending]=await Promise.all([
+ token.balanceOf(user),
+ chef.userInfo(user),
+ chef.pendingReward(user)
  ]);
  $("bal").textContent=fmt(bal,dec);
  $("staked").textContent=fmt(info.amount,dec);
- stakeAmount=parseFloat(fmt(info.amount,dec));
- accPerShare=parseFloat(fmt(acc,12));
- rewardPerBlock=parseFloat(fmt(rewardBlk,dec));
- lastBlock=lastBlk.toNumber();
- startRewardTicker();
+ $("pending").textContent=fmt(pending,dec);
+ if(priceUSD>0){const usd=(parseFloat(fmt(pending,dec))*priceUSD).toFixed(2);$("pendingUSD").textContent=`≈ $${usd}`;}
  }catch(e){console.error(e);}
-}
-$("refreshSmall").onclick=()=>{play("clickSound");refreshData();};
-
-function startRewardTicker(){
- if(timer)clearInterval(timer);
- pendingDisplay=0;
- timer=setInterval(()=>{
-   if(stakeAmount>0 && rewardPerBlock>0){
-     pendingDisplay += rewardPerBlock * 3/Math.pow(10,0); // ประมาณ block/3s
-     $("pending").textContent=pendingDisplay.toFixed(4);
-     if(priceUSD>0){const usd=(pendingDisplay*priceUSD).toFixed(4);$("pendingUSD").textContent=`≈ $${usd}`;}
-   }
- },3000);
 }
 
 $("deposit").onclick=async()=>{
- if(!signer)return showMsg(text[lang].needConnect,"red");
+ if(!signer)return showMsg("กรุณาเชื่อมกระเป๋าก่อน","red");
  const v=$("amount").value.trim();if(!v)return;
  try{
  const amt=ethers.utils.parseUnits(v,dec);
@@ -176,7 +153,7 @@ $("deposit").onclick=async()=>{
 };
 
 $("withdraw").onclick=async()=>{
- if(!signer)return showMsg(text[lang].needConnect,"red");
+ if(!signer)return showMsg("กรุณาเชื่อมกระเป๋าก่อน","red");
  const v=$("amount").value.trim();if(!v)return;
  try{
  const amt=ethers.utils.parseUnits(v,dec);
@@ -188,18 +165,27 @@ $("withdraw").onclick=async()=>{
 };
 
 $("claim").onclick=async()=>{
- if(!signer)return showMsg(text[lang].needConnect,"red");
+ if(!signer)return showMsg("กรุณาเชื่อมกระเป๋าก่อน","red");
  try{
  const tx=await chef.deposit(0);
  showMsg("🎁 กำลังรับรางวัล...");await tx.wait();
  showMsg("✅ รับรางวัลสำเร็จ!");play("rewardSound");
- pendingDisplay=0;refreshData();
+ refreshData();
  }catch(e){console.error(e);showMsg("❌ รับรางวัลล้มเหลว","red");}
 };
 
 $("buyDNX").onclick=()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
 
-async function updatePrice(){try{const r=await fetch(PANCAKE_API);const j=await r.json();if(j?.data?.price){priceUSD=parseFloat(j.data.price);}}catch{console.warn("ดึงราคาจาก PancakeSwap ไม่ได้");}}
+async function updatePrice(){
+ try{
+ const r=await fetch(PANCAKE_API);
+ const j=await r.json();
+ if(j?.data?.price){
+ priceUSD=parseFloat(j.data.price);
+ refreshData();
+ }
+ }catch{console.warn("ดึงราคาจาก PancakeSwap ไม่ได้");}
+}
 updatePrice();setInterval(updatePrice,60000);
 });
 </script>

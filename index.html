@@ -4,252 +4,186 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>🌾 DNX FARM ULTRA++</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{
-  height:100%;overflow-x:hidden;
-  font-family:"Poppins",system-ui,Segoe UI,Roboto,"Noto Sans Thai",sans-serif;
+body{
+  font-family:"Poppins","Noto Sans Thai",sans-serif;
   background:radial-gradient(circle at top,#000 40%,#111 100%);
-  color:#fff;
+  color:#fff;text-align:center;overflow-x:hidden;
 }
-
-/* ---------- Header Section ---------- */
 header{
-  position:fixed;top:0;left:0;right:0;z-index:20;
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
-  gap:8px;padding:10px 12px;
+  position:fixed;top:0;left:0;right:0;z-index:10;
   background:linear-gradient(90deg,#111,#222,#111);
   border-bottom:2px solid var(--gold);
-  box-shadow:0 0 20px rgba(255,215,0,.3);
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 20px;box-shadow:0 0 20px rgba(255,215,0,.4);
 }
-.header-left{justify-self:start;display:flex;gap:8px;align-items:center}
-.header-center{justify-self:center}
-.header-right{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-
-button{border:none;font-weight:700;cursor:pointer;transition:transform .12s ease}
-button:hover{transform:translateY(-1px)}
-
-#langToggle{background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);
-  padding:8px 14px;border-radius:12px}
-#claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;
-  padding:8px 14px;border-radius:18px;font-size:13px;
-  box-shadow:0 0 10px rgba(0,255,213,.35)}
-#connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;
-  padding:10px 18px;border-radius:18px}
-.divider{margin-top:52px;border:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-
-/* ---------- Refresh button below divider ---------- */
-#refreshSmall{
-  display:block;margin:10px auto;background:#1a1a1a;color:#ddd;
-  border:1px solid #3ad8c8;border-radius:10px;
-  padding:6px 12px;font-size:13px;
-  box-shadow:0 0 5px rgba(0,255,213,.45)
+#langToggle,#connectBtn,#claimFreeTop{
+  border:none;border-radius:12px;font-weight:700;cursor:pointer;
 }
-
-/* ---------- Logo (not covered) ---------- */
+#langToggle{background:rgba(0,0,0,.5);border:1px solid var(--gold);color:var(--gold);padding:8px 14px}
+#claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;padding:8px 14px;border-radius:16px}
+#connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;padding:10px 20px;border-radius:16px}
+#refreshSmall{margin-top:60px;border:1px solid var(--neon);border-radius:10px;padding:5px 10px;font-size:13px;background:#111;color:#0ff}
 #logo{
-  position:fixed;top:75px;left:16px;width:84px;height:84px;border-radius:50%;
-  background:url('dnx_logo.png') center/cover no-repeat;
-  box-shadow:0 0 24px rgba(255,215,0,.65), inset 0 0 18px rgba(255,215,0,.45);
-  animation:spin 12s linear infinite;z-index:999;
+  position:fixed;top:80px;left:15px;width:80px;height:80px;
+  background:url('dnx_logo.png') center/cover no-repeat;border-radius:50%;
+  box-shadow:0 0 20px rgba(255,215,0,.6),inset 0 0 20px rgba(255,215,0,.4);
+  animation:spin 12s linear infinite;z-index:5;
 }
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-/* ---------- Main Layout ---------- */
-main{
-  margin-top:150px;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  text-align:center;
-}
-h1{color:var(--gold);font-size:2rem;text-shadow:0 0 28px rgba(255,215,0,.65);margin-top:18px}
-
-/* ---------- Scrolling subtitle ---------- */
-.marquee{
-  white-space:nowrap;overflow:hidden;box-sizing:border-box;
-  width:90%;max-width:500px;margin:10px auto;
-}
-.marquee span{
-  display:inline-block;padding-left:100%;
-  animation:scroll 14s linear infinite;
-  color:#00ffd5;opacity:.9;font-size:1rem;
-}
-@keyframes scroll{
-  0%{transform:translate(0,0)}
-  100%{transform:translate(-100%,0)}
-}
-
-/* ---------- Card ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+main{margin-top:150px;display:flex;flex-direction:column;align-items:center}
+h1{color:var(--gold);font-size:2rem;text-shadow:0 0 25px var(--gold)}
+.marquee{white-space:nowrap;overflow:hidden;width:90%;max-width:480px;margin:10px auto}
+.marquee span{display:inline-block;padding-left:100%;animation:scroll 15s linear infinite;color:#00ffd5}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 .card{
-  background:rgba(0,0,0,.7);border:2px solid var(--gold);
-  border-radius:16px;box-shadow:0 0 30px rgba(255,215,0,.28);
-  padding:22px;width:min(95%,620px);margin:auto;
+  background:rgba(0,0,0,.7);border:2px solid var(--gold);border-radius:16px;
+  box-shadow:0 0 30px rgba(255,215,0,.3);padding:20px;width:min(95%,600px);
 }
-.stats{
-  display:grid;grid-template-columns:repeat(2,1fr);
-  gap:10px;margin-bottom:10px;text-align:center;
-}
-.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);
-  border-radius:10px;padding:10px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px}
 .stat .label{font-size:13px;opacity:.8}
-.stat .value{font-weight:800;color:var(--gold);word-break:break-word}
-#pendingUSD{font-size:12px;color:#aaa;margin-top:2px}
-input{
-  width:80%;padding:10px;margin:10px 0;border-radius:10px;
-  border:1px solid var(--neon);background:#000;color:#00ffd5;text-align:center
-}
-.action{
-  border:none;border-radius:10px;padding:10px 16px;margin:5px;
-  font-weight:800;cursor:pointer
-}
+.stat .value{font-weight:800;color:var(--gold)}
+input{width:80%;padding:10px;margin:10px 0;border:1px solid var(--neon);
+  border-radius:10px;background:#000;color:#00ffd5;text-align:center}
+button.action{border:none;border-radius:10px;padding:10px 16px;margin:5px;font-weight:700;cursor:pointer}
 .btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
 .gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000}
-
-/* ---------- Claim Spark Glow ---------- */
-@keyframes goldBurst{
-  0%{box-shadow:0 0 22px rgba(255,215,0,1);transform:scale(1.06)}
-  100%{box-shadow:none;transform:scale(1)}
-}
-.glowClaim{animation:goldBurst 0.9s ease}
-
-/* ---------- Footer ---------- */
-footer{margin-top:14px;color:#888;font-size:14px;text-align:center}
-
-/* ---------- Responsive ---------- */
-@media (max-width:600px){
-  header{grid-template-columns:auto 1fr auto;padding:8px}
-  #logo{top:75px;left:12px;width:72px;height:72px}
-  #connectBtn{padding:8px 14px;font-size:13px}
-  #claimFreeTop{font-size:12px;padding:6px 12px}
-  #langToggle{padding:6px 10px}
-  .divider{margin-top:50px}
-  h1{font-size:1.6rem}
-}
+.glowClaim{animation:claimFx .9s ease}
+@keyframes claimFx{0%{box-shadow:0 0 22px var(--gold);transform:scale(1.05)}100%{box-shadow:none;transform:scale(1)}}
+footer{margin-top:14px;color:#aaa;font-size:14px}
 </style>
 </head>
 <body>
 
-<!-- Header -->
 <header>
-  <div class="header-left">
-    <button id="langToggle">EN</button>
-  </div>
-  <div class="header-center">
-    <button id="claimFreeTop">🎁 Claim 500 DNX ฟรี</button>
-  </div>
-  <div class="header-right">
-    <button id="connectBtn">🔗 เชื่อมกระเป๋า</button>
-  </div>
+  <button id="langToggle">EN</button>
+  <button id="claimFreeTop">🎁 Claim 500 DNX ฟรี</button>
+  <button id="connectBtn">🔗 เชื่อมกระเป๋า</button>
 </header>
 
-<hr class="divider"/>
 <button id="refreshSmall">🔄 Refresh</button>
+<div id="logo"></div>
 
-<!-- Logo -->
-<div id="logo" aria-hidden="true"></div>
-
-<!-- Main -->
 <main>
-  <h1 id="title">🌾 DNX FARM ULTRA++</h1>
-  <div class="marquee"><span id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</span></div>
+  <h1>🌾 DNX FARM ULTRA++</h1>
+  <div class="marquee"><span>ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</span></div>
 
   <div class="card">
     <div class="stats">
-      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat">
-        <div class="label" id="lblReward">รางวัลค้างรับ</div>
-        <div id="pending" class="value">—</div>
-        <div id="pendingUSD">≈ — USD</div>
-      </div>
+      <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label">Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat"><div class="label">รางวัลค้างรับ</div><div id="pending" class="value">—</div></div>
     </div>
 
     <input id="amount" placeholder="กรอกจำนวน DNX" />
-
     <div>
-      <button id="deposit" class="action btn">💰 ฝาก (Deposit)</button>
-      <button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button>
+      <button id="deposit" class="action btn">💰 ฝาก</button>
+      <button id="withdraw" class="action btn">💎 ถอน</button>
     </div>
     <div>
-      <button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button>
+      <button id="claim" class="action gold">🎁 รับรางวัล</button>
       <button id="buyDNX" class="action gold">🛒 BUY DNX</button>
     </div>
-
     <footer>Powered by <b>DNX Finance</b> © 2025</footer>
   </div>
 </main>
 
-<!-- Sounds -->
-<audio id="clickSound"   src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
-<audio id="rewardSound"  src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
+<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
+<audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
 
 <script>
-/* === CONFIG === */
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const CHEF="0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
-const FAUCET="0x0000000000000000000000000000000000000000";
+const CHEF ="0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
 
-/* === ABIs === */
-const ABIchef=[
-"function deposit(uint256) external",
-"function withdraw(uint256) external",
-"function pendingReward(address) view returns(uint256)",
-"function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
-];
 const ABItoken=[
-"function balanceOf(address) view returns(uint256)",
-"function decimals() view returns(uint8)",
-"function allowance(address,address) view returns(uint256)",
-"function approve(address,uint256) returns(bool)"
+  "function balanceOf(address) view returns(uint256)",
+  "function decimals() view returns(uint8)",
+  "function allowance(address,address) view returns(uint256)",
+  "function approve(address,uint256) returns(bool)"
 ];
 
-/* === Helper === */
+// ตัวแปรเก็บชื่อฟังก์ชันจริงใน contract
+let FN_DEPOSIT="deposit",FN_WITHDRAW="withdraw",FN_PENDING="pendingReward",FN_STAKEVIEW="stakes";
+
 const $=id=>document.getElementById(id);
 const play=id=>{const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
 function fmt(bn,dec=18){try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return"0.00"}}
 
-/* === State === */
 let provider,signer,user,token,chef,dec=18;
 
-/* === Connect Wallet === */
+/* ==== ตรวจจับชื่อฟังก์ชันอัตโนมัติ ==== */
+async function autoDetectABI(){
+  const testABI=[
+    "function deposit(uint256) external",
+    "function stake(uint256) external",
+    "function enterStaking(uint256) external",
+    "function withdraw(uint256) external",
+    "function unstake(uint256) external",
+    "function claimReward() external",
+    "function harvest() external",
+    "function pendingReward(address) view returns(uint256)",
+    "function pendingRewards(address) view returns(uint256)",
+    "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
+    "function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
+  ];
+  let testContract=new ethers.Contract(CHEF,testABI,provider);
+  try{
+    for(let fn of testABI){
+      const name=fn.split("(")[0].split(" ").pop();
+      try{await testContract.callStatic[name](user).catch(()=>{});}catch{}
+      if(name.includes("pendingReward"))FN_PENDING=name;
+      if(name.includes("userInfo")||name.includes("stakes"))FN_STAKEVIEW=name;
+      if(name.includes("deposit")||name.includes("stake")||name.includes("enter"))FN_DEPOSIT=name;
+      if(name.includes("withdraw")||name.includes("unstake"))FN_WITHDRAW=name;
+    }
+    console.log("✅ AutoDetect ABI",FN_DEPOSIT,FN_WITHDRAW,FN_PENDING);
+  }catch(e){console.warn("AutoDetect failed",e);}
+}
+
+/* ==== เชื่อมต่อกระเป๋า ==== */
 async function connect(){
   play("clickSound");
-  if(!window.ethereum)return alert("⚠️ ต้องมี MetaMask ก่อน!");
+  if(!window.ethereum)return alert("⚠️ โปรดติดตั้ง MetaMask ก่อน");
   try{
     provider=new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts",[]);
-    signer=provider.getSigner();user=await signer.getAddress();
+    signer=provider.getSigner();
+    user=await signer.getAddress();
     token=new ethers.Contract(TOKEN,ABItoken,signer);
-    chef=new ethers.Contract(CHEF,ABIchef,signer);
+    chef=new ethers.Contract(CHEF,[],signer);
     dec=await token.decimals().catch(()=>18);
     $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
-    play("rewardSound");refreshData();
-  }catch(e){alert("❌ "+(e.message||"Connect fail"));}
+    play("rewardSound");
+    await autoDetectABI();
+    await refreshData();
+  }catch(e){console.error(e);alert("❌ "+e.message);}
 }
-$("connectBtn").addEventListener("click",connect);
+$("connectBtn").onclick=connect;
 
-/* === Refresh === */
+/* ==== โหลดข้อมูล ==== */
 async function refreshData(){
-  if(!user)return alert("กรุณาเชื่อมกระเป๋าก่อน");
+  if(!provider||!user)return alert("กรุณาเชื่อมกระเป๋าก่อน");
   try{
-    const [bal,stake,pending]=await Promise.all([
-      token.balanceOf(user),
-      chef.stakes(user),
-      chef.pendingReward(user)
+    const t=new ethers.Contract(TOKEN,ABItoken,provider);
+    const bal=await t.balanceOf(user);
+    const c=new ethers.Contract(CHEF,[`function ${FN_STAKEVIEW}(address) view returns(uint256 amount,uint256 rewardDebt)`,`function ${FN_PENDING}(address) view returns(uint256)`],provider);
+    const [stake,pending]=await Promise.all([
+      c[FN_STAKEVIEW](user),
+      c[FN_PENDING](user)
     ]);
     $("bal").textContent=fmt(bal,dec);
     $("staked").textContent=fmt(stake.amount||0,dec);
     $("pending").textContent=fmt(pending,dec);
   }catch(e){console.error(e);}
 }
-$("refreshSmall").addEventListener("click",()=>{play("clickSound");refreshData();});
+$("refreshSmall").onclick=()=>{play("clickSound");refreshData();};
 
-/* === Actions === */
+/* ==== Action ปุ่ม ==== */
 async function ensureApprove(amount){
   const allow=await token.allowance(user,CHEF);
   if(allow.gte(amount))return;
@@ -261,32 +195,33 @@ async function onDeposit(){
   const v=$("amount").value.trim();if(!v)return;
   const amt=ethers.utils.parseUnits(v,dec);
   await ensureApprove(amt);
-  const tx=await chef.deposit(amt);await tx.wait();
+  const c=new ethers.Contract(CHEF,[`function ${FN_DEPOSIT}(uint256)`],signer);
+  const tx=await c[FN_DEPOSIT](amt);await tx.wait();
   $("amount").value="";refreshData();
 }
 async function onWithdraw(){
   play("clickSound");
   const v=$("amount").value.trim();if(!v)return;
   const amt=ethers.utils.parseUnits(v,dec);
-  const tx=await chef.withdraw(amt);await tx.wait();
+  const c=new ethers.Contract(CHEF,[`function ${FN_WITHDRAW}(uint256)`],signer);
+  const tx=await c[FN_WITHDRAW](amt);await tx.wait();
   $("amount").value="";refreshData();
 }
 async function onClaim(){
-  const tx=await chef.deposit(0);await tx.wait();
+  play("clickSound");
+  const c=new ethers.Contract(CHEF,[`function ${FN_DEPOSIT}(uint256)`],signer);
+  const tx=await c ;await tx.wait();
   $("claim").classList.add("glowClaim");
   play("rewardSound");
   setTimeout(()=>{$("claim").classList.remove("glowClaim");},900);
   refreshData();
 }
-
-/* === BUY === */
 function buyDNX(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
 
-/* === Bind === */
-$("deposit").addEventListener("click",onDeposit);
-$("withdraw").addEventListener("click",onWithdraw);
-$("claim").addEventListener("click",onClaim);
-$("buyDNX").addEventListener("click",buyDNX);
+$("deposit").onclick=onDeposit;
+$("withdraw").onclick=onWithdraw;
+$("claim").onclick=onClaim;
+$("buyDNX").onclick=buyDNX;
 </script>
 </body>
 </html>

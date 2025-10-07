@@ -44,6 +44,7 @@ h1{color:var(--gold);font-size:2rem;text-shadow:0 0 28px rgba(255,215,0,.65);mar
 .stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px}
 .stat .label{font-size:13px;opacity:.8}
 .stat .value{font-weight:800;color:var(--gold);word-break:break-word}
+#pendingUSD{font-size:12px;color:#aaa;margin-top:2px}
 input{width:80%;padding:10px;margin:10px 0;border-radius:10px;border:1px solid var(--neon);background:#000;color:#00ffd5;text-align:center}
 .action{border:none;border-radius:10px;padding:10px 16px;margin:5px;font-weight:800;cursor:pointer}
 .btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
@@ -70,10 +71,10 @@ footer{margin-top:14px;color:#888;font-size:14px;text-align:center}
   <div class="marquee"><span id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</span></div>
   <div class="card">
     <div class="stats">
-      <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-      <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label">รางวัลค้างรับ</div><div id="pending" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
     </div>
     <input id="amount" placeholder="กรอกจำนวน DNX" />
     <div>
@@ -95,7 +96,7 @@ footer{margin-top:14px;color:#888;font-size:14px;text-align:center}
 /* ===== CONFIG ===== */
 const TOKEN  = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF   = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
-const FAUCET = "0x0000000000000000000000000000000000000000";
+const PRICE_API = "https://api.pancakeswap.info/api/v2/tokens/" + TOKEN;
 
 /* ===== ABIs ===== */
 const ABItoken = [
@@ -110,122 +111,119 @@ const ABIchef = [
   "function pendingReward(address) view returns(uint256)",
   "function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
-const ABIfaucet = [
-  "function claim() external",
-  "function claimed(address) view returns(bool)"
-];
 
 /* ===== Helpers ===== */
 const $ = id => document.getElementById(id);
-const play = id => {const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
+function play(id){const a=$(id);if(a){a.currentTime=0;a.play();}}
 function fmt(bn,dec=18){try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}}
 
-let provider, signer, user, token, chef, faucet, dec=18;
+/* ===== Language System ===== */
+let lang = localStorage.getItem("DNX_LANG") || "TH";
+const t = {
+ TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",deposit:"💰 ฝาก (Deposit)",withdraw:"💎 ถอน (Withdraw)",claim:"🎁 รับรางวัล (Claim)",buy:"🛒 BUY DNX",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
+ EN:{toggle:"TH",connect:"🔗 Connect Wallet",deposit:"💰 Deposit",withdraw:"💎 Withdraw",claim:"🎁 Claim",buy:"🛒 BUY DNX",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards"}
+};
+function applyLang(){
+ const L=t[lang];
+ $("langToggle").textContent=L.toggle;
+ $("connectBtn").textContent=L.connect;
+ $("deposit").textContent=L.deposit;
+ $("withdraw").textContent=L.withdraw;
+ $("claim").textContent=L.claim;
+ $("buyDNX").textContent=L.buy;
+ $("lblWallet").textContent=L.wallet;
+ $("lblBal").textContent=L.total;
+ $("lblStake").textContent=L.stake;
+ $("lblReward").textContent=L.reward;
+}
+$("langToggle").addEventListener("click",()=>{
+ play("clickSound");
+ lang=(lang==="TH")?"EN":"TH";
+ localStorage.setItem("DNX_LANG",lang);
+ applyLang();
+});
+applyLang();
 
-/* ===== Connect Wallet ===== */
+/* ===== Main Web3 ===== */
+let provider, signer, user, token, chef, dec=18, dnxPrice=0;
+
 async function connect(){
-  play("clickSound");
-  if(!window.ethereum){alert("⚠️ กรุณาติดตั้ง MetaMask ก่อน");return;}
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  signer = provider.getSigner();
-  user = await signer.getAddress();
-  token = new ethers.Contract(TOKEN, ABItoken, signer);
-  chef  = new ethers.Contract(CHEF, ABIchef, signer);
-  faucet = new ethers.Contract(FAUCET, ABIfaucet, signer);
-  try{dec = await token.decimals();}catch{dec=18;}
-  $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
-  play("rewardSound");
-  refreshData();
+ play("clickSound");
+ if(!window.ethereum){alert("⚠️ MetaMask not found");return;}
+ provider=new ethers.providers.Web3Provider(window.ethereum);
+ await provider.send("eth_requestAccounts",[]);
+ signer=provider.getSigner();
+ user=await signer.getAddress();
+ token=new ethers.Contract(TOKEN,ABItoken,signer);
+ chef=new ethers.Contract(CHEF,ABIchef,signer);
+ try{dec=await token.decimals();}catch{dec=18;}
+ $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
+ play("rewardSound");
+ refreshData();
 }
 $("connectBtn").addEventListener("click",connect);
 
-/* ===== Refresh Data ===== */
+async function getDNXPrice(){
+ try{
+  const res=await fetch(PRICE_API);
+  const json=await res.json();
+  dnxPrice=parseFloat(json.data.price);
+ }catch(e){dnxPrice=0;}
+}
+
 async function refreshData(){
-  if(!user) return alert("กรุณาเชื่อมกระเป๋าก่อน");
-  try{
-    const [bal, st, pending] = await Promise.all([
-      token.balanceOf(user),
-      chef.stakes(user),
-      chef.pendingReward(user)
-    ]);
-    $("bal").textContent = fmt(bal,dec);
-    $("staked").textContent = fmt(st.amount||0,dec);
-    $("pending").textContent = fmt(pending,dec);
-  }catch(e){console.error(e);}
+ if(!signer){alert("กรุณาเชื่อมกระเป๋าก่อน");return;}
+ await getDNXPrice();
+ try{
+  const [bal, st, pending]=await Promise.all([
+   token.balanceOf(user),
+   chef.stakes(user),
+   chef.pendingReward(user)
+  ]);
+  $("bal").textContent=fmt(bal,dec);
+  $("staked").textContent=fmt(st.amount||0,dec);
+  $("pending").textContent=fmt(pending,dec);
+  const usd=(parseFloat(fmt(pending,dec))*dnxPrice).toFixed(4);
+  $("pendingUSD").textContent=`≈ ${usd} USD`;
+ }catch(e){console.error(e);}
 }
 $("refreshSmall").addEventListener("click",()=>{play("clickSound");refreshData();});
 
-/* ===== Approve Helper ===== */
 async function ensureApprove(amount){
-  const allow = await token.allowance(user,CHEF);
-  if(allow.gte(amount)) return;
-  const tx = await token.approve(CHEF, ethers.constants.MaxUint256);
-  await tx.wait();
+ const allow=await token.allowance(user,CHEF);
+ if(allow.gte(amount)) return;
+ const tx=await token.approve(CHEF,ethers.constants.MaxUint256);
+ await tx.wait();
 }
 
-/* ===== Deposit ===== */
+/* ===== Deposit / Withdraw / Claim ===== */
 async function onDeposit(){
-  play("clickSound");
-  if(!signer) return alert("กรุณาเชื่อมกระเป๋าก่อน");
-  const v=$("amount").value.trim(); if(!v) return alert("กรุณาใส่จำนวน");
-  const amt = ethers.utils.parseUnits(v,dec);
-  await ensureApprove(amt);
-  const tx = await chef.deposit(amt); await tx.wait();
-  $("amount").value="";
-  $("claim").classList.add("glowClaim");
-  play("rewardSound");
-  setTimeout(()=>{$("claim").classList.remove("glowClaim");},900);
-  refreshData();
+ play("clickSound");
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
+ const v=$("amount").value.trim();if(!v)return alert("กรอกจำนวน DNX");
+ const amt=ethers.utils.parseUnits(v,dec);
+ await ensureApprove(amt);
+ const tx=await chef.deposit(amt);await tx.wait();
+ play("rewardSound");refreshData();
 }
-
-/* ===== Withdraw ===== */
 async function onWithdraw(){
-  play("clickSound");
-  if(!signer) return alert("กรุณาเชื่อมกระเป๋าก่อน");
-  const v=$("amount").value.trim(); if(!v) return alert("กรุณาใส่จำนวน");
-  const amt = ethers.utils.parseUnits(v,dec);
-  const tx = await chef.withdraw(amt); await tx.wait();
-  $("amount").value="";
-  $("claim").classList.add("glowClaim");
-  play("rewardSound");
-  setTimeout(()=>{$("claim").classList.remove("glowClaim");},900);
-  refreshData();
+ play("clickSound");
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
+ const v=$("amount").value.trim();if(!v)return alert("กรอกจำนวน DNX");
+ const amt=ethers.utils.parseUnits(v,dec);
+ const tx=await chef.withdraw(amt);await tx.wait();
+ play("rewardSound");refreshData();
 }
-
-/* ===== Claim Rewards ===== */
 async function onClaim(){
-  play("clickSound");
-  if(!signer) return alert("กรุณาเชื่อมกระเป๋าก่อน");
-  const tx = await chef.deposit(0); await tx.wait();
-  $("claim").classList.add("glowClaim");
-  play("rewardSound");
-  setTimeout(()=>{$("claim").classList.remove("glowClaim");},900);
-  refreshData();
+ play("clickSound");
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
+ const tx=await chef.deposit(0);await tx.wait();
+ play("rewardSound");refreshData();
 }
-
-/* ===== BUY DNX ===== */
-function buyDNX(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
-
-/* ===== Faucet (Top Button) ===== */
-async function claimFreeTop(){
-  play("clickSound");
-  if(!signer) return alert("กรุณาเชื่อมกระเป๋าก่อน");
-  try{
-    const fc = new ethers.Contract(FAUCET,ABIfaucet,signer);
-    const isClaimed = await fc.claimed(user);
-    if(isClaimed) return alert("คุณรับไปแล้ว");
-    const tx = await fc.claim(); await tx.wait();
-    play("rewardSound");
-  }catch(e){console.error(e);}
-}
-
-/* ===== Bind Buttons ===== */
-$("deposit").addEventListener("click", onDeposit);
-$("withdraw").addEventListener("click", onWithdraw);
-$("claim").addEventListener("click", onClaim);
-$("buyDNX").addEventListener("click", buyDNX);
-$("claimFreeTop").addEventListener("click", claimFreeTop);
+$("deposit").addEventListener("click",onDeposit);
+$("withdraw").addEventListener("click",onWithdraw);
+$("claim").addEventListener("click",onClaim);
+$("buyDNX").addEventListener("click",()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank"));
 </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 <script>
-/* ================== Config ================== */
-const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const CHEF  = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
-const FAUCET = "0x0000000000000000000000000000000000000000"; // ยังไม่ใช้
+/* ================== CONFIG ================== */
+const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62"; // DNX Token
+const CHEF  = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C"; // DNX Staking
+const PANCAKE_API = "https://api.pancakeswap.info/api/v2/tokens/" + TOKEN;
 
 /* ================== ABIs ================== */
 const ABIchef = [
@@ -17,173 +17,177 @@ const ABItoken = [
   "function allowance(address,address) view returns(uint256)",
   "function approve(address,uint256) returns(bool)"
 ];
-/* ================== Helpers ================== */
+
+/* ================== SHORTCUT ================== */
 const $=(id)=>document.getElementById(id);
 const play=(id)=>{const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
-function fmt(bn,dec=18){try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}}
+const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}};
 
-/* ================== State ================== */
-let provider, signer, user, token, chef, dec=18;
+/* ================== GLOBAL ================== */
+let provider, signer, user, token, chef, dec=18, priceUSD=0;
 
-/* ================== Language ================== */
+/* ================== ALERT ================== */
+function showMsg(msg,color="gold"){
+  let box=$("msgBox");
+  if(!box){
+    box=document.createElement("div");
+    box.id="msgBox";
+    box.style.position="fixed";
+    box.style.bottom="15px";
+    box.style.left="50%";
+    box.style.transform="translateX(-50%)";
+    box.style.padding="10px 18px";
+    box.style.background="#111";
+    box.style.color=color;
+    box.style.border="1px solid "+color;
+    box.style.borderRadius="10px";
+    box.style.fontFamily="Poppins, sans-serif";
+    box.style.zIndex="9999";
+    document.body.appendChild(box);
+  }
+  box.textContent=msg;
+  setTimeout(()=>box.remove(),3000);
+}
+
+/* ================== LANGUAGE ================== */
 let lang = localStorage.getItem("DNX_LANG") || "TH";
 const text = {
-  TH:{toggle:"EN", connect:"🔗 เชื่อมกระเป๋า", free:"🎁 Claim 500 DNX ฟรี", wallet:"กระเป๋า", total:"ยอด DNX ทั้งหมด", stake:"จำนวน Stake", reward:"รางวัลค้างรับ", placeholder:"กรอกจำนวน DNX", deposit:"💰 ฝาก (Deposit)", withdraw:"💎 ถอน (Withdraw)", claim:"🎁 รับรางวัล (Claim)", buy:"🛒 BUY DNX", refresh:"🔄 Refresh", already:"คุณรับไปแล้ว", needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
-  EN:{toggle:"TH", connect:"🔗 Connect Wallet", free:"🎁 Claim 500 DNX Free", wallet:"Wallet", total:"Total DNX", stake:"Your Stake", reward:"Pending Rewards", placeholder:"Enter DNX amount", deposit:"💰 Deposit", withdraw:"💎 Withdraw", claim:"🎁 Claim Rewards", buy:"🛒 BUY DNX", refresh:"🔄 Refresh", already:"Already claimed", needConnect:"Please connect wallet first"}
+  TH:{toggle:"EN", connect:"🔗 เชื่อมกระเป๋า", wallet:"กระเป๋า", total:"ยอด DNX ทั้งหมด", stake:"จำนวน Stake", reward:"รางวัลค้างรับ", needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
+  EN:{toggle:"TH", connect:"🔗 Connect Wallet", wallet:"Wallet", total:"Total DNX", stake:"Your Stake", reward:"Pending Rewards", needConnect:"Please connect wallet first"}
 };
 function applyLang(){
   const L=text[lang];
   $("langToggle").textContent=L.toggle;
   $("connectBtn").textContent=L.connect;
-  $("claimFreeTop").textContent=L.free;
   $("lblWallet").textContent=L.wallet;
   $("lblBal").textContent=L.total;
   $("lblStake").textContent=L.stake;
   $("lblReward").textContent=L.reward;
-  $("amount").placeholder=L.placeholder;
-  $("deposit").textContent=L.deposit;
-  $("withdraw").textContent=L.withdraw;
-  $("claim").textContent=L.claim;
-  $("buyDNX").textContent=L.buy;
-  $("refreshSmall").textContent=L.refresh;
 }
-$("langToggle").addEventListener("click",()=>{
-  play("clickSound");
-  lang = (lang==="TH")?"EN":"TH";
-  localStorage.setItem("DNX_LANG",lang);
-  applyLang();
-});
+$("langToggle").onclick=()=>{play("clickSound");lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();}
 applyLang();
 
-/* ================== Connect Wallet ================== */
+/* ================== CONNECT WALLET ================== */
 async function connect(){
   play("clickSound");
-  if(typeof window.ethereum === "undefined"){
-    alert("⚠️ MetaMask not found");
-    return;
-  }
+  if(!window.ethereum) return showMsg("❌ ไม่มี MetaMask","red");
   try{
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    user = accounts[0];
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer = provider.getSigner();
-    token = new ethers.Contract(TOKEN, ABItoken, signer);
-    chef  = new ethers.Contract(CHEF , ABIchef , signer);
-    try{ dec = await token.decimals(); }catch{ dec=18; }
-    $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
+    const accounts = await window.ethereum.request({method:"eth_requestAccounts"});
+    user=accounts[0];
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    signer=provider.getSigner();
+    token=new ethers.Contract(TOKEN,ABItoken,signer);
+    chef=new ethers.Contract(CHEF,ABIchef,signer);
+    dec=await token.decimals();
+    $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
+    showMsg("✅ เชื่อมต่อแล้ว");
     play("rewardSound");
-    console.log("✅ Connected wallet:", user);
     refreshData();
-  }catch(err){
-    console.error(err);
-    alert("❌ " + (err?.message || "Connection failed"));
-  }
+  }catch(e){console.error(e);showMsg("❌ เชื่อมไม่สำเร็จ","red");}
 }
-$("connectBtn").addEventListener("click",connect);
+$("connectBtn").onclick=connect;
 
-/* ================== Refresh Data ================== */
+/* ================== REFRESH DATA ================== */
 async function refreshData(){
-  if(!user){ alert(text[lang].needConnect); return; }
+  if(!user) return showMsg(text[lang].needConnect,"red");
   try{
-    const rt = new ethers.Contract(TOKEN,ABItoken,provider);
-    const rc = new ethers.Contract(CHEF ,ABIchef ,provider);
-    const [bal, stakeInfo, pending] = await Promise.all([
-      rt.balanceOf(user),
-      rc.stakes(user),
-      rc.pendingReward(user)
+    const [bal, info, pending] = await Promise.all([
+      token.balanceOf(user),
+      chef.stakes(user),
+      chef.pendingReward(user)
     ]);
     $("bal").textContent = fmt(bal,dec);
-    $("staked").textContent = fmt(stakeInfo.amount || 0,dec);
+    $("staked").textContent = fmt(info.amount,dec);
     $("pending").textContent = fmt(pending,dec);
-    console.log("📊 Balance:", fmt(bal,dec), "| Stake:", fmt(stakeInfo.amount,dec), "| Pending:", fmt(pending,dec));
-  }catch(e){ console.error("⚠️ refreshData error:", e); }
-}
-$("refreshSmall").addEventListener("click",()=>{ play("clickSound"); refreshData(); });
 
-/* ================== Approve Helper ================== */
+    // 💵 แปลงเป็น USD
+    if(priceUSD>0){
+      const usd = (parseFloat(fmt(pending,dec)) * priceUSD).toFixed(4);
+      $("pendingUSD").textContent = `≈ $${usd}`;
+    }
+  }catch(e){console.error(e);showMsg("⚠️ โหลดข้อมูลไม่ได้","red");}
+}
+$("refreshSmall").onclick=()=>{play("clickSound");refreshData();};
+
+/* ================== APPROVE ================== */
 async function ensureApprove(amount){
-  const allow = await token.allowance(user,CHEF);
-  if(allow.gte(amount)) return;
-  console.log("🔑 Approving token...");
-  const tx = await token.approve(CHEF, ethers.constants.MaxUint256);
+  const allow=await token.allowance(user,CHEF);
+  if(allow.gte(amount))return;
+  showMsg("🔑 กำลังอนุมัติ...");
+  const tx=await token.approve(CHEF,ethers.constants.MaxUint256);
   await tx.wait();
-  console.log("✅ Approved successfully");
+  showMsg("✅ อนุมัติสำเร็จ!");
 }
 
-/* ================== Deposit / Withdraw / Claim ================== */
-async function onDeposit(){
+/* ================== DEPOSIT ================== */
+async function deposit(){
+  if(!signer) return showMsg(text[lang].needConnect,"red");
+  const v=$("amount").value.trim(); if(!v)return showMsg("⚠️ กรอกจำนวน DNX");
   try{
-    play("clickSound");
-    if(!signer) return alert(text[lang].needConnect);
-    const v=$("amount").value.trim();
-    if(!v) return;
-    const amt = ethers.utils.parseUnits(v,dec);
-    console.log("🚀 Deposit:", v, "→", amt.toString());
+    const amt=ethers.utils.parseUnits(v,dec);
     await ensureApprove(amt);
-    const tx = await chef.deposit(amt);
-    console.log("⛽ Tx sent:", tx.hash);
+    const tx=await chef.deposit(amt);
+    showMsg("⛽ รอการยืนยัน...");
     await tx.wait();
+    showMsg("✅ ฝากสำเร็จ!");
     play("rewardSound");
-    console.log("✅ Deposit success!");
     $("amount").value="";
     refreshData();
-  }catch(err){
-    console.error("❌ Deposit error:", err);
-    alert("Deposit Error: " + (err?.message || "Unknown error"));
-  }
+  }catch(e){console.error(e);showMsg("❌ ฝากล้มเหลว","red");}
 }
+$("deposit").onclick=deposit;
 
-async function onWithdraw(){
+/* ================== WITHDRAW ================== */
+async function withdraw(){
+  if(!signer) return showMsg(text[lang].needConnect,"red");
+  const v=$("amount").value.trim(); if(!v)return showMsg("⚠️ กรอกจำนวน DNX");
   try{
-    play("clickSound");
-    if(!signer) return alert(text[lang].needConnect);
-    const v=$("amount").value.trim();
-    if(!v) return;
-    const amt = ethers.utils.parseUnits(v,dec);
-    console.log("🚀 Withdraw:", v, "→", amt.toString());
-    const tx = await chef.withdraw(amt);
-    console.log("⛽ Tx sent:", tx.hash);
+    const amt=ethers.utils.parseUnits(v,dec);
+    const tx=await chef.withdraw(amt);
+    showMsg("⛽ รอการยืนยัน...");
     await tx.wait();
+    showMsg("✅ ถอนสำเร็จ!");
     play("rewardSound");
-    console.log("✅ Withdraw success!");
     $("amount").value="";
     refreshData();
-  }catch(err){
-    console.error("❌ Withdraw error:", err);
-    alert("Withdraw Error: " + (err?.message || "Unknown error"));
-  }
+  }catch(e){console.error(e);showMsg("❌ ถอนล้มเหลว","red");}
 }
+$("withdraw").onclick=withdraw;
 
-async function onClaim(){
+/* ================== CLAIM REWARD ================== */
+async function claim(){
+  if(!signer) return showMsg(text[lang].needConnect,"red");
   try{
-    if(!signer) return alert(text[lang].needConnect);
-    console.log("🎁 Claim Rewards...");
     const tx=await chef.deposit(0);
-    console.log("⛽ Tx sent:", tx.hash);
+    showMsg("🎁 กำลังรับรางวัล...");
     await tx.wait();
+    showMsg("✅ รับรางวัลสำเร็จ!");
     $("claim").classList.add("glowClaim");
     play("rewardSound");
     setTimeout(()=>$("claim").classList.remove("glowClaim"),900);
-    console.log("✅ Claim success!");
     refreshData();
-  }catch(err){
-    console.error("❌ Claim error:", err);
-    alert("Claim Error: " + (err?.message || "Unknown error"));
-  }
+  }catch(e){console.error(e);showMsg("❌ รับรางวัลล้มเหลว","red");}
 }
+$("claim").onclick=claim;
 
-/* ================== Buy DNX ================== */
+/* ================== BUY DNX ================== */
 function buyDNX(){
   play("clickSound");
   window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
 }
+$("buyDNX").onclick=buyDNX;
 
-/* ================== Bind Buttons ================== */
-$("deposit").addEventListener("click", onDeposit);
-$("withdraw").addEventListener("click", onWithdraw);
-$("claim").addEventListener("click", onClaim);
-$("buyDNX").addEventListener("click", buyDNX);
-["langToggle","refreshSmall"].forEach(id=>{
-  const el=$(id); if(el) el.addEventListener("click",()=>play("clickSound"));
-});
+/* ================== GET PRICE FROM PANCAKE ================== */
+async function updatePrice(){
+  try{
+    const res=await fetch(PANCAKE_API);
+    const data=await res.json();
+    priceUSD=parseFloat(data.data.price);
+    console.log("💰 DNX/USD =",priceUSD);
+    refreshData();
+  }catch(e){console.warn("⚠️ ไม่สามารถดึงราคาจาก PancakeSwap ได้");}
+}
+updatePrice();
+setInterval(updatePrice,60000); // อัปเดตราคาใหม่ทุก 60 วินาที
+
 </script>

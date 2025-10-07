@@ -1,3 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🌾 DNX FARM ULTRA++</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+:root{--gold:#ffd700;--neon:#00ffd5}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;overflow-x:hidden;
+  font-family:"Poppins",system-ui,Segoe UI,Roboto,"Noto Sans Thai",sans-serif;
+  background:radial-gradient(circle at top,#000 40%,#111 100%);
+  color:#fff;
+}
+
+/* ---------- Header Section ---------- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:20;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  gap:8px;padding:10px 12px;
+  background:linear-gradient(90deg,#111,#222,#111);
+  border-bottom:2px solid var(--gold);
+  box-shadow:0 0 20px rgba(255,215,0,.3);
+}
+.header-left{justify-self:start;display:flex;gap:8px;align-items:center}
+.header-center{justify-self:center}
+.header-right{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+
+button{border:none;font-weight:700;cursor:pointer;transition:transform .12s ease}
+button:hover{transform:translateY(-1px)}
+
+#langToggle{background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);
+  padding:8px 14px;border-radius:12px}
+#claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;
+  padding:8px 14px;border-radius:18px;font-size:13px;
+  box-shadow:0 0 10px rgba(0,255,213,.35)}
+#connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;
+  padding:10px 18px;border-radius:18px}
+.divider{margin-top:52px;border:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+/* ---------- Refresh button below divider ---------- */
+#refreshSmall{
+  display:block;margin:10px auto;background:#1a1a1a;color:#ddd;
+  border:1px solid #3ad8c8;border-radius:10px;
+  padding:6px 12px;font-size:13px;
+  box-shadow:0 0 5px rgba(0,255,213,.45)
+}
+
+/* ---------- Logo (not covered) ---------- */
+#logo{
+  position:fixed;top:75px;left:16px;width:84px;height:84px;border-radius:50%;
+  background:url('dnx_logo.png') center/cover no-repeat;
+  box-shadow:0 0 24px rgba(255,215,0,.65), inset 0 0 18px rgba(255,215,0,.45);
+  animation:spin 12s linear infinite;z-index:999;
+}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* ---------- Main Layout ---------- */
+main{
+  margin-top:150px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+}
+h1{color:var(--gold);font-size:2rem;text-shadow:0 0 28px rgba(255,215,0,.65);margin-top:18px}
+
+/* ---------- Scrolling subtitle ---------- */
+.marquee{
+  white-space:nowrap;overflow:hidden;box-sizing:border-box;
+  width:90%;max-width:500px;margin:10px auto;
+}
+.marquee span{
+  display:inline-block;padding-left:100%;
+  animation:scroll 14s linear infinite;
+  color:#00ffd5;opacity:.9;font-size:1rem;
+}
+@keyframes scroll{
+  0%{transform:translate(0,0)}
+  100%{transform:translate(-100%,0)}
+}
+
+/* ---------- Card ---------- */
+.card{
+  background:rgba(0,0,0,.7);border:2px solid var(--gold);
+  border-radius:16px;box-shadow:0 0 30px rgba(255,215,0,.28);
+  padding:22px;width:min(95%,620px);margin:auto;
+}
+.stats{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px;margin-bottom:10px;text-align:center;
+}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);
+  border-radius:10px;padding:10px}
+.stat .label{font-size:13px;opacity:.8}
+.stat .value{font-weight:800;color:var(--gold);word-break:break-word}
+#pendingUSD{font-size:12px;color:#aaa;margin-top:2px}
+input{
+  width:80%;padding:10px;margin:10px 0;border-radius:10px;
+  border:1px solid var(--neon);background:#000;color:#00ffd5;text-align:center
+}
+.action{
+  border:none;border-radius:10px;padding:10px 16px;margin:5px;
+  font-weight:800;cursor:pointer
+}
+.btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
+.gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000}
+
+/* ---------- Claim Spark Glow ---------- */
+@keyframes goldBurst{
+  0%{box-shadow:0 0 22px rgba(255,215,0,1);transform:scale(1.06)}
+  100%{box-shadow:none;transform:scale(1)}
+}
+.glowClaim{animation:goldBurst 0.9s ease}
+
+/* ---------- Footer ---------- */
+footer{margin-top:14px;color:#888;font-size:14px;text-align:center}
+
+/* ---------- Responsive ---------- */
+@media (max-width:600px){
+  header{grid-template-columns:auto 1fr auto;padding:8px}
+  #logo{top:75px;left:12px;width:72px;height:72px}
+  #connectBtn{padding:8px 14px;font-size:13px}
+  #claimFreeTop{font-size:12px;padding:6px 12px}
+  #langToggle{padding:6px 10px}
+  .divider{margin-top:50px}
+  h1{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <button id="langToggle">EN</button>
+  </div>
+  <div class="header-center">
+    <button id="claimFreeTop">🎁 Claim 500 DNX ฟรี</button>
+  </div>
+  <div class="header-right">
+    <button id="connectBtn">🔗 เชื่อมกระเป๋า</button>
+  </div>
+</header>
+
+<hr class="divider"/>
+<button id="refreshSmall">🔄 Refresh</button>
+
+<!-- Logo -->
+<div id="logo" aria-hidden="true"></div>
+
+<!-- Main -->
+<main>
+  <h1 id="title">🌾 DNX FARM ULTRA++</h1>
+  <div class="marquee"><span id="subtitle">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</span></div>
+
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat">
+        <div class="label" id="lblReward">รางวัลค้างรับ</div>
+        <div id="pending" class="value">—</div>
+        <div id="pendingUSD">≈ — USD</div>
+      </div>
+    </div>
+
+    <input id="amount" placeholder="กรอกจำนวน DNX" />
+
+    <div>
+      <button id="deposit" class="action btn">💰 ฝาก (Deposit)</button>
+      <button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button>
+    </div>
+    <div>
+      <button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button>
+      <button id="buyDNX" class="action gold">🛒 BUY DNX</button>
+    </div>
+
+    <footer>Powered by <b>DNX Finance</b> © 2025</footer>
+  </div>
+</main>
+
+<!-- Sounds -->
+<audio id="clickSound"   src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
+<audio id="rewardSound"  src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
 <script>
 /* ================== Config ================== */
 const TOKEN  = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";

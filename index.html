@@ -76,6 +76,7 @@ footer{margin-top:14px;color:#888;font-size:14px}
 window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
+const BSC_MAINNET=56;
 const PANCAKE_API="https://api.pancakeswap.info/api/v2/tokens/"+TOKEN;
 
 const ABIchef=[
@@ -114,11 +115,24 @@ applyLang();
 
 function showMsg(msg,color="gold"){let box=$("msgBox");if(!box){box=document.createElement("div");Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});box.id="msgBox";document.body.appendChild(box);}box.textContent=msg;setTimeout(()=>box.remove(),2500);}
 
+async function ensureMetaMask(){
+ if(!window.ethereum){
+   showMsg("⚠️ กรุณาเปิดเว็บนี้ผ่าน MetaMask App","orange");
+   throw new Error("MetaMask not detected");
+ }
+ const chain=await window.ethereum.request({method:"eth_chainId"});
+ const net=parseInt(chain,16);
+ if(net!==BSC_MAINNET){
+   showMsg("⚠️ กรุณาเปลี่ยนเป็น BNB Smart Chain (Mainnet)","orange");
+   throw new Error("Wrong network");
+ }
+}
+
 $("refreshSmall").onclick=async()=>{play("clickSound");$("refreshSmall").textContent="⏳ กำลังอัปเดต...";await refreshData();$("refreshSmall").textContent="✅ อัปเดตแล้ว";setTimeout(()=>{$("refreshSmall").textContent="🔄 Refresh";},2000);};
 
 async function connect(){
- if(!window.ethereum)return showMsg("❌ ไม่มี MetaMask","red");
  try{
+ await ensureMetaMask();
  const acc=await ethereum.request({method:"eth_requestAccounts"});
  user=acc[0];
  provider=new ethers.providers.Web3Provider(window.ethereum);

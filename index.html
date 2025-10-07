@@ -187,180 +187,106 @@ footer{margin-top:14px;color:#888;font-size:14px;text-align:center}
 <!-- Sounds -->
 <audio id="clickSound"   src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3?filename=click-124467.mp3" preload="auto"></audio>
 <audio id="rewardSound"  src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3?filename=coin-bell-glow-115372.mp3" preload="auto"></audio>
+
 <script>
-/* ================== Config ================== */
-const TOKEN  = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const CHEF   = "0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
-const FAUCET = "0x0000000000000000000000000000000000000000"; // 👈 แก้เป็น faucet address ของคุณ
+/* === CONFIG === */
+const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
+const CHEF="0xEa13c02F1c69668c2C9f873Fe6fdf44FDD3B0C3C";
+const FAUCET="0x0000000000000000000000000000000000000000";
 
-/* ================== ABIs ================== */
-const ABIchef = [
-  "function deposit(uint256) external",
-  "function withdraw(uint256) external",
-  "function pendingReward(address) view returns(uint256)",
-  "function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
+/* === ABIs === */
+const ABIchef=[
+"function deposit(uint256) external",
+"function withdraw(uint256) external",
+"function pendingReward(address) view returns(uint256)",
+"function stakes(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
-const ABItoken = [
-  "function balanceOf(address) view returns(uint256)",
-  "function decimals() view returns(uint8)",
-  "function allowance(address,address) view returns(uint256)",
-  "function approve(address,uint256) returns(bool)"
-];
-const ABIfaucet = [
-  "function claim() external",
-  "function claimed(address) view returns(bool)"
+const ABItoken=[
+"function balanceOf(address) view returns(uint256)",
+"function decimals() view returns(uint8)",
+"function allowance(address,address) view returns(uint256)",
+"function approve(address,uint256) returns(bool)"
 ];
 
-/* ================== Helpers ================== */
-const $=(id)=>document.getElementById(id);
-const play=(id)=>{const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
-function fmt(bn,dec=18){try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}}
+/* === Helper === */
+const $=id=>document.getElementById(id);
+const play=id=>{const a=$(id);if(a){try{a.currentTime=0;a.play()}catch{}}};
+function fmt(bn,dec=18){try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return"0.00"}}
 
-/* ================== State ================== */
-let provider, signer, user, token, chef, faucet, dec=18;
+/* === State === */
+let provider,signer,user,token,chef,dec=18;
 
-/* ================== i18n ================== */
-let lang = localStorage.getItem("DNX_LANG") || "TH";
-const text = {
-  TH:{toggle:"EN", connect:"🔗 เชื่อมกระเป๋า", free:"🎁 Claim 500 DNX ฟรี",
-      wallet:"กระเป๋า", total:"ยอด DNX ทั้งหมด", stake:"จำนวน Stake", reward:"รางวัลค้างรับ",
-      placeholder:"กรอกจำนวน DNX", deposit:"💰 ฝาก (Deposit)", withdraw:"💎 ถอน (Withdraw)",
-      claim:"🎁 รับรางวัล (Claim)", buy:"🛒 BUY DNX", refresh:"🔄 Refresh",
-      already:"คุณรับไปแล้ว", needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
-  EN:{toggle:"TH", connect:"🔗 Connect Wallet", free:"🎁 Claim 500 DNX Free",
-      wallet:"Wallet", total:"Total DNX", stake:"Your Stake", reward:"Pending Rewards",
-      placeholder:"Enter DNX amount", deposit:"💰 Deposit", withdraw:"💎 Withdraw",
-      claim:"🎁 Claim Rewards", buy:"🛒 BUY DNX", refresh:"🔄 Refresh",
-      already:"Already claimed", needConnect:"Please connect wallet first"}
-};
-function applyLang(){
-  const L=text[lang];
-  $("langToggle").textContent=L.toggle;
-  $("connectBtn").textContent=L.connect;
-  $("claimFreeTop").textContent=L.free;
-  $("lblWallet").textContent=L.wallet;
-  $("lblBal").textContent=L.total;
-  $("lblStake").textContent=L.stake;
-  $("lblReward").textContent=L.reward;
-  $("amount").placeholder=L.placeholder;
-  $("deposit").textContent=L.deposit;
-  $("withdraw").textContent=L.withdraw;
-  $("claim").textContent=L.claim;
-  $("buyDNX").textContent=L.buy;
-  $("refreshSmall").textContent=L.refresh;
-}
-$("langToggle").addEventListener("click",()=>{
-  play("clickSound");
-  lang = (lang==="TH")?"EN":"TH";
-  localStorage.setItem("DNX_LANG",lang);
-  applyLang();
-});
-applyLang();
-
-/* ================== MetaMask Connect ================== */
+/* === Connect Wallet === */
 async function connect(){
   play("clickSound");
-  if(typeof window.ethereum === "undefined"){
-    alert("⚠️ MetaMask not found");
-    return;
-  }
+  if(!window.ethereum)return alert("⚠️ ต้องมี MetaMask ก่อน!");
   try{
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    user = accounts[0];
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer   = provider.getSigner();
-    token    = new ethers.Contract(TOKEN, ABItoken, signer);
-    chef     = new ethers.Contract(CHEF , ABIchef , signer);
-    faucet   = new ethers.Contract(FAUCET, ABIfaucet, signer);
-    try{ dec = await token.decimals(); }catch{ dec=18; }
-    $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
-    play("rewardSound");
-    refreshData();
-  }catch(err){
-    console.error(err);
-    alert("❌ " + (err?.message || "Connection failed"));
-  }
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner();user=await signer.getAddress();
+    token=new ethers.Contract(TOKEN,ABItoken,signer);
+    chef=new ethers.Contract(CHEF,ABIchef,signer);
+    dec=await token.decimals().catch(()=>18);
+    $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
+    play("rewardSound");refreshData();
+  }catch(e){alert("❌ "+(e.message||"Connect fail"));}
 }
 $("connectBtn").addEventListener("click",connect);
 
-/* ================== Read Data ================== */
+/* === Refresh === */
 async function refreshData(){
-  if(!user){ alert(text[lang].needConnect); return; }
+  if(!user)return alert("กรุณาเชื่อมกระเป๋าก่อน");
   try{
-    const rt = new ethers.Contract(TOKEN,ABItoken,provider);
-    const rc = new ethers.Contract(CHEF ,ABIchef ,provider);
-    const [bal, stakeInfo, pending] = await Promise.all([
-      rt.balanceOf(user),
-      rc.stakes(user),
-      rc.pendingReward(user)
+    const [bal,stake,pending]=await Promise.all([
+      token.balanceOf(user),
+      chef.stakes(user),
+      chef.pendingReward(user)
     ]);
-    $("bal").textContent     = fmt(bal,dec);
-    $("staked").textContent  = fmt(stakeInfo.amount || 0,dec);
-    $("pending").textContent = fmt(pending,dec);
-  }catch(e){ console.error(e); }
+    $("bal").textContent=fmt(bal,dec);
+    $("staked").textContent=fmt(stake.amount||0,dec);
+    $("pending").textContent=fmt(pending,dec);
+  }catch(e){console.error(e);}
 }
-$("refreshSmall").addEventListener("click",()=>{ play("clickSound"); refreshData(); });
+$("refreshSmall").addEventListener("click",()=>{play("clickSound");refreshData();});
 
-/* ================== Approve + Actions ================== */
+/* === Actions === */
 async function ensureApprove(amount){
-  const allow = await token.allowance(user,CHEF);
-  if(allow.gte(amount)) return;
-  const tx = await token.approve(CHEF, ethers.constants.MaxUint256);
+  const allow=await token.allowance(user,CHEF);
+  if(allow.gte(amount))return;
+  const tx=await token.approve(CHEF,ethers.constants.MaxUint256);
   await tx.wait();
 }
 async function onDeposit(){
   play("clickSound");
-  if(!signer) return alert(text[lang].needConnect);
-  const v=$("amount").value.trim(); if(!v) return;
-  const amt = ethers.utils.parseUnits(v,dec);
+  const v=$("amount").value.trim();if(!v)return;
+  const amt=ethers.utils.parseUnits(v,dec);
   await ensureApprove(amt);
-  const tx = await chef.deposit(amt); await tx.wait();
-  $("amount").value="";
-  refreshData();
+  const tx=await chef.deposit(amt);await tx.wait();
+  $("amount").value="";refreshData();
 }
 async function onWithdraw(){
   play("clickSound");
-  if(!signer) return alert(text[lang].needConnect);
-  const v=$("amount").value.trim(); if(!v) return;
-  const amt = ethers.utils.parseUnits(v,dec);
-  const tx  = await chef.withdraw(amt); await tx.wait();
-  $("amount").value="";
-  refreshData();
+  const v=$("amount").value.trim();if(!v)return;
+  const amt=ethers.utils.parseUnits(v,dec);
+  const tx=await chef.withdraw(amt);await tx.wait();
+  $("amount").value="";refreshData();
 }
 async function onClaim(){
-  if(!signer) return alert(text[lang].needConnect);
-  const tx=await chef.deposit(0); await tx.wait();
+  const tx=await chef.deposit(0);await tx.wait();
   $("claim").classList.add("glowClaim");
   play("rewardSound");
-  setTimeout(()=>$("claim").classList.remove("glowClaim"),900);
+  setTimeout(()=>{$("claim").classList.remove("glowClaim");},900);
   refreshData();
 }
-function buyDNX(){
-  window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
-}
 
-/* ================== Faucet (Top small button) ================== */
-async function claimFreeTop(){
-  play("clickSound");
-  if(!signer) return alert(text[lang].needConnect);
-  try{
-    const fc = new ethers.Contract(FAUCET,ABIfaucet,signer);
-    const isClaimed = await fc.claimed(user);
-    if(isClaimed) return alert(text[lang].already);
-    const tx = await fc.claim(); await tx.wait();
-    play("rewardSound");
-  }catch(e){ console.error(e); }
-}
+/* === BUY === */
+function buyDNX(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
 
-/* ================== Bind Buttons ================== */
-$("deposit").addEventListener("click", onDeposit);
-$("withdraw").addEventListener("click", onWithdraw);
-$("claim").addEventListener("click", onClaim);
-$("buyDNX").addEventListener("click", buyDNX);
-$("claimFreeTop").addEventListener("click", claimFreeTop);
-["langToggle","refreshSmall"].forEach(id=>{
-  const el=$(id); if(el) el.addEventListener("click",()=>play("clickSound"));
-});
+/* === Bind === */
+$("deposit").addEventListener("click",onDeposit);
+$("withdraw").addEventListener("click",onWithdraw);
+$("claim").addEventListener("click",onClaim);
+$("buyDNX").addEventListener("click",buyDNX);
 </script>
 </body>
 </html>

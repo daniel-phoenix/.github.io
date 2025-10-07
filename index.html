@@ -70,11 +70,9 @@ footer{margin-top:14px;color:#888;font-size:14px}
 </main>
 
 <script>
-window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
 const BSC_MAINNET=56;
-
 const ABIchef=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
@@ -94,18 +92,23 @@ let provider,signer,user,token,chef,dec=18;
 
 function showMsg(msg,color="gold"){
  let box=$("msgBox");
- if(!box){
-   box=document.createElement("div");
-   Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});
-   box.id="msgBox";document.body.appendChild(box);
- }
- box.textContent=msg;setTimeout(()=>box.remove(),3000);
+ if(!box){box=document.createElement("div");
+ Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});
+ box.id="msgBox";document.body.appendChild(box);}
+ box.textContent=msg;setTimeout(()=>box.remove(),2500);
+}
+
+async function waitForEthereum(){
+ return new Promise(resolve=>{
+  const check=()=>{if(window.ethereum)resolve(window.ethereum);else setTimeout(check,500);}
+  check();
+ });
 }
 
 async function connect(){
  try{
- if(!window.ethereum){showMsg("⚠️ กรุณาเปิดเว็บนี้ผ่าน MetaMask App","orange");return;}
- provider=new ethers.providers.Web3Provider(window.ethereum);
+ const eth=await waitForEthereum();
+ provider=new ethers.providers.Web3Provider(eth);
  const net=await provider.getNetwork();
  if(net.chainId!==BSC_MAINNET){showMsg("⚠️ กรุณาเปลี่ยนเป็น BNB Smart Chain (Mainnet)","orange");return;}
  const acc=await provider.send("eth_requestAccounts",[]);
@@ -135,10 +138,7 @@ async function refreshData(){
 }
 
 $("connectBtn").onclick=connect;
-window.ethereum?.on("accountsChanged",()=>connect());
-window.ethereum?.on("chainChanged",()=>location.reload());
-connect();
-});
+window.addEventListener("load",()=>{setTimeout(connect,1500)});
 </script>
 </body>
 </html>

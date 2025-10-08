@@ -73,6 +73,7 @@ footer{margin-top:14px;color:#888;font-size:14px}
 window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
+const PANCAKE_API="https://api.pancakeswap.info/api/v2/tokens/"+TOKEN;
 
 const ABIchef=[
  "function deposit(uint256) external",
@@ -91,7 +92,7 @@ const ABItoken=[
 const $=id=>document.getElementById(id);
 const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}};
 
-let provider,signer,user,token,chef,dec=18;
+let provider,signer,user,token,chef,dec=18,priceUSD=0;
 
 function showMsg(msg,color="gold"){
  let box=$("msgBox");
@@ -123,7 +124,7 @@ $("connectBtn").onclick=connect;
 async function refreshData(){
  if(!user)return;
  try{
- const [bal,info,acc,rewardPerBlock]=await Promise.all([
+ const [bal,info,acc,rewardBlk]=await Promise.all([
   token.balanceOf(user),
   chef.userInfo(user),
   chef.accDNXPerShare(),
@@ -132,15 +133,28 @@ async function refreshData(){
  $("bal").textContent=fmt(bal,dec);
  $("staked").textContent=fmt(info.amount,dec);
 
- // ✅ คำนวณรางวัลค้างรับจริง
+ // ✅ ดึงรางวัลค้างรับจาก Smart Contract จริง
  const pending = info.amount.mul(acc).div(ethers.BigNumber.from("1000000000000")).sub(info.rewardDebt);
- $("pending").textContent=fmt(pending,dec);
+ $("pending").textContent = fmt(pending,dec);
+ if(priceUSD>0){
+   const usd=(parseFloat(fmt(pending,dec))*priceUSD).toFixed(4);
+   $("pendingUSD").textContent=`≈ $${usd}`;
+ }
 
  showMsg("✅ อัปเดตแล้ว","lime");
  }catch(e){console.error(e);}
 }
 $("refreshSmall").onclick=()=>{refreshData();};
 
+// อัปเดตราคา
+async function updatePrice(){
+ try{
+   const r=await fetch(PANCAKE_API);
+   const j=await r.json();
+   if(j?.data?.price){priceUSD=parseFloat(j.data.price);}
+ }catch{console.warn("ดึงราคาจาก PancakeSwap ไม่ได้");}
+}
+updatePrice();setInterval(updatePrice,60000);
 });
 </script>
 </body>

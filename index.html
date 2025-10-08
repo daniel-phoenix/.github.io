@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌾 DNX FARM ULTRA++</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5}
@@ -56,10 +55,10 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
   <div class="card">
     <div class="stats">
-      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
+      <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label">จำนวน Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat"><div class="label">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
     </div>
 
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
@@ -69,22 +68,17 @@ footer{margin-top:14px;color:#888;font-size:14px}
   </div>
 </main>
 
-<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f8bcb2fca4.mp3" preload="auto"></audio>
-<audio id="rewardSound" src="https://cdn.pixabay.com/download/audio/2022/03/23/audio_8a75c7c03b.mp3" preload="auto"></audio>
-
 <script>
 window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
-const PANCAKE_API="https://api.pancakeswap.info/api/v2/tokens/"+TOKEN;
-
 const ABIchef=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
  "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function rewardPerBlock() view returns(uint256)",
- "function pendingReward(address) view returns(uint256)", // ✅ เพิ่มไว้ใช้ดึงค่าจริง
- "function updatePool() external"
+ "function accDNXPerShare() view returns(uint256)",
+ "function lastRewardBlock() view returns(uint256)"
 ];
 const ABItoken=[
  "function balanceOf(address) view returns(uint256)",
@@ -95,16 +89,7 @@ const ABItoken=[
 
 const $=id=>document.getElementById(id);
 const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}};
-let provider,signer,user,token,chef,dec=18,priceUSD=0;
-
-function showMsg(msg){console.log(msg);}
-
-let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
-EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",needConnect:"Please connect wallet first"}};
-function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("connectBtn").textContent=L.connect;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
-$("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
-applyLang();
+let provider,signer,user,token,chef,dec=18;
 
 async function connect(){
  if(!window.ethereum)return alert("❌ ไม่มี MetaMask");
@@ -117,7 +102,6 @@ async function connect(){
  chef=new ethers.Contract(CHEF,ABIchef,signer);
  dec=await token.decimals();
  $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
- showMsg("✅ Connected");
  refreshData();
  }catch(e){alert("❌ เชื่อมไม่สำเร็จ");}
 }
@@ -135,70 +119,60 @@ async function ensureApprove(amount){
 async function refreshData(){
  if(!user)return;
  try{
- const [bal,info,pending]=await Promise.all([
+ const [bal,info,rewardBlk,acc]=await Promise.all([
    token.balanceOf(user),
    chef.userInfo(user),
-   chef.pendingReward(user)
+   chef.rewardPerBlock(),
+   chef.accDNXPerShare()
  ]);
  $("bal").textContent=fmt(bal,dec);
  $("staked").textContent=fmt(info.amount,dec);
- $("pending").textContent=fmt(pending,dec);
- if(priceUSD>0){$("pendingUSD").textContent=`≈ $${(parseFloat(fmt(pending,dec))*priceUSD).toFixed(2)}`;}
+
+ // ✅ คำนวณรางวัลค้างรับแบบ manual (ปลอดภัยทุกเวอร์ชัน)
+ const pending = (parseFloat(fmt(info.amount,dec)) * parseFloat(fmt(acc,12)) / 1e12) - parseFloat(fmt(info.rewardDebt,dec));
+ $("pending").textContent=pending.toFixed(4);
  }catch(e){console.error(e);}
 }
 $("refreshSmall").onclick=refreshData;
 
 $("deposit").onclick=async()=>{
- if(!signer)return alert(text[lang].needConnect);
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
  const v=$("amount").value.trim();if(!v)return;
  try{
  const amt=ethers.utils.parseUnits(v,dec);
  await ensureApprove(amt);
  const tx=await chef.deposit(amt);
- alert("⛽ รอการยืนยัน...");
- await tx.wait();alert("✅ ฝากสำเร็จ!");
- $("amount").value="";
+ alert("⛽ รอการยืนยัน...");await tx.wait();
+ alert("✅ ฝากสำเร็จ!");$("amount").value="";
  refreshData();
  }catch(e){alert("❌ ฝากล้มเหลว");}
 };
 
 $("withdraw").onclick=async()=>{
- if(!signer)return alert(text[lang].needConnect);
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
  const v=$("amount").value.trim();if(!v)return;
  try{
  const amt=ethers.utils.parseUnits(v,dec);
  const tx=await chef.withdraw(amt);
- alert("⛽ รอการยืนยัน...");
- await tx.wait();alert("✅ ถอนสำเร็จ!");
- $("amount").value="";
+ alert("⛽ รอการยืนยัน...");await tx.wait();
+ alert("✅ ถอนสำเร็จ!");$("amount").value="";
  refreshData();
  }catch(e){alert("❌ ถอนล้มเหลว");}
 };
 
 $("claim").onclick=async()=>{
- if(!signer)return alert(text[lang].needConnect);
+ if(!signer)return alert("กรุณาเชื่อมกระเป๋าก่อน");
  try{
  const tx=await chef.deposit(0);
- alert("🎁 กำลังรับรางวัล...");
- await tx.wait();alert("✅ รับรางวัลสำเร็จ!");
- refreshData();
+ alert("🎁 กำลังรับรางวัล...");await tx.wait();
+ alert("✅ รับรางวัลสำเร็จ!");refreshData();
  }catch(e){alert("❌ รับรางวัลล้มเหลว");}
 };
 
 $("buyDNX").onclick=()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
 
-async function updatePrice(){
- try{
- const r=await fetch(PANCAKE_API);
- const j=await r.json();
- if(j?.data?.price)priceUSD=parseFloat(j.data.price);
- }catch{}
-}
-updatePrice();setInterval(updatePrice,60000);
-
-// ✅ อัปเดตข้อมูลจริงทุก 1 วินาที
+// ✅ อัปเดตข้อมูลทุก 1 วินาที
 setInterval(()=>{if(user)refreshData();},1000);
-
 });
 </script>
 </body>

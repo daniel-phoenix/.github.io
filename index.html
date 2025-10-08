@@ -55,15 +55,21 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
   <div class="card">
     <div class="stats">
-      <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-      <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
+      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
     </div>
 
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
-    <div><button id="deposit" class="action btn">💰 ฝาก (Deposit)</button><button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button></div>
-    <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold">🛒 BUY DNX</button></div>
+    <div>
+      <button id="deposit" class="action btn">💰 ฝาก (Deposit)</button>
+      <button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button>
+    </div>
+    <div>
+      <button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button>
+      <button id="buyDNX" class="action gold">🛒 BUY DNX</button>
+    </div>
     <footer>Powered by <b>DNX Finance</b> © 2025</footer>
   </div>
 </main>
@@ -77,8 +83,7 @@ const ABIchef=[
  "function withdraw(uint256) external",
  "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function rewardPerBlock() view returns(uint256)",
- "function accDNXPerShare() view returns(uint256)",
- "function lastRewardBlock() view returns(uint256)"
+ "function accDNXPerShare() view returns(uint256)"
 ];
 const ABItoken=[
  "function balanceOf(address) view returns(uint256)",
@@ -90,6 +95,27 @@ const ABItoken=[
 const $=id=>document.getElementById(id);
 const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(2)}catch{return "0.00"}};
 let provider,signer,user,token,chef,dec=18;
+
+let lang=localStorage.getItem("DNX_LANG")||"TH";
+const text={
+ TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",deposit:"💰 ฝาก",withdraw:"💎 ถอน",claim:"🎁 รับรางวัล",buy:"🛒 ซื้อ DNX"},
+ EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",deposit:"💰 Deposit",withdraw:"💎 Withdraw",claim:"🎁 Claim",buy:"🛒 BUY DNX"}
+};
+function applyLang(){
+ const L=text[lang];
+ $("langToggle").textContent=L.toggle;
+ $("connectBtn").textContent=L.connect;
+ $("lblWallet").textContent=L.wallet;
+ $("lblBal").textContent=L.total;
+ $("lblStake").textContent=L.stake;
+ $("lblReward").textContent=L.reward;
+ $("deposit").textContent=L.deposit;
+ $("withdraw").textContent=L.withdraw;
+ $("claim").textContent=L.claim;
+ $("buyDNX").textContent=L.buy;
+}
+$("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
+applyLang();
 
 async function connect(){
  if(!window.ethereum)return alert("❌ ไม่มี MetaMask");
@@ -127,9 +153,8 @@ async function refreshData(){
  ]);
  $("bal").textContent=fmt(bal,dec);
  $("staked").textContent=fmt(info.amount,dec);
-
- // ✅ คำนวณรางวัลค้างรับแบบ manual (ปลอดภัยทุกเวอร์ชัน)
- const pending = (parseFloat(fmt(info.amount,dec)) * parseFloat(fmt(acc,12)) / 1e12) - parseFloat(fmt(info.rewardDebt,dec));
+ const rawPending=(parseFloat(fmt(info.amount,dec))*parseFloat(fmt(acc,12))/1e12)-parseFloat(fmt(info.rewardDebt,dec));
+ const pending=Math.max(rawPending,0);
  $("pending").textContent=pending.toFixed(4);
  }catch(e){console.error(e);}
 }
@@ -171,7 +196,6 @@ $("claim").onclick=async()=>{
 
 $("buyDNX").onclick=()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
 
-// ✅ อัปเดตข้อมูลทุก 1 วินาที
 setInterval(()=>{if(user)refreshData();},1000);
 });
 </script>

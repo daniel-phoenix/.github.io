@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌾 DNX FARM ULTRA++</title>
 
-<!-- ✅ ใช้ Cloudflare CDN เพื่อความเสถียร -->
+<!-- ✅ ethers.js จาก Cloudflare -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
 integrity="sha512-T7Lg4J3BQp0HCD+Xmv7U7D+9Z8USfMVbQuH4g8U/ToCPqv98m1wX4G1B6cUGxOhzTX/ZRvMfXlywW2aVh4Vh0A=="
 crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -21,8 +21,8 @@ button:hover{transform:translateY(-1px)}
 #claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;padding:6px 12px;border-radius:14px;font-size:13px}
 #connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;padding:8px 14px;border-radius:14px}
 .divider{margin-top:52px;border:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-#refreshSmall{display:block;margin:10px auto;background:#1a1a1a;color:#ddd;border:1px solid #3ad8c8;border-radius:10px;padding:6px 12px;font-size:13px;transition:0.2s}
-#refreshSmall:active{background:#00ffd5;color:#000;transform:scale(0.96)}
+#refreshSmall{display:block;margin:10px auto;background:#1a1a1a;color:#ddd;border:1px solid #3ad8c8;border-radius:10px;padding:6px 12px;font-size:13px;transition:.2s}
+#refreshSmall:active{background:#00ffd5;color:#000;transform:scale(.96)}
 #logo{position:fixed;top:80px;left:16px;width:80px;height:80px;border-radius:50%;background:url('dnx_logo.png') center/cover no-repeat;box-shadow:0 0 20px rgba(255,215,0,.6);animation:spin 12s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 main{text-align:center;margin-top:150px}
@@ -75,16 +75,15 @@ footer{margin-top:14px;color:#888;font-size:14px}
 </main>
 
 <script>
-const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62"; // ✅ DNX
-const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";   // ✅ DNX MasterChef
+const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
+const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
 const PANCAKE_API="https://api.pancakeswap.info/api/v2/tokens/"+TOKEN;
 
 const ABIchef=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function pendingReward(address) view returns(uint256)",
- "function rewardPerBlock() view returns(uint256)"
+ "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
 ];
 const ABItoken=[
  "function balanceOf(address) view returns(uint256)",

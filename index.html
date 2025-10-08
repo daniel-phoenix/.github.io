@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌾 DNX FARM ULTRA++</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+<!-- ✅ โหลด ethers.js ก่อน -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" 
+integrity="sha512-T7Lg4J3BQp0HCD+Xmv7U7D+9Z8USfMVbQuH4g8U/ToCPqv98m1wX4G1B6cUGxOhzTX/ZRvMfXlywW2aVh4Vh0A==" 
+crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -38,8 +42,8 @@ input{width:80%;padding:10px;margin:10px 0;border-radius:10px;border:1px solid v
 footer{margin-top:14px;color:#888;font-size:14px}
 </style>
 </head>
-<body>
 
+<body>
 <header>
   <div><button id="langToggle">EN</button></div>
   <div><button id="claimFreeTop">🎁 Claim 500 DNX ฟรี</button></div>
@@ -56,15 +60,21 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
   <div class="card">
     <div class="stats">
-      <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
+      <div class="stat"><div class="label">กระเป๋า</div><div id="waddr" class="value">—</div></div>
+      <div class="stat"><div class="label">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label">จำนวน Stake</div><div id="staked" class="value">—</div></div>
+      <div class="stat"><div class="label">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
     </div>
 
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
-    <div><button id="deposit" class="action btn">💰 ฝาก (Deposit)</button><button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button></div>
-    <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold">🛒 BUY DNX</button></div>
+    <div>
+      <button id="deposit" class="action btn">💰 ฝาก (Deposit)</button>
+      <button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button>
+    </div>
+    <div>
+      <button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button>
+      <button id="buyDNX" class="action gold">🛒 BUY DNX</button>
+    </div>
     <footer>Powered by <b>DNX Finance</b> © 2025</footer>
   </div>
 </main>
@@ -73,6 +83,7 @@ footer{margin-top:14px;color:#888;font-size:14px}
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
 const BSC_MAINNET=56;
+
 const ABIchef=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
@@ -92,9 +103,11 @@ let provider,signer,user,token,chef,dec=18;
 
 function showMsg(msg,color="gold"){
  let box=$("msgBox");
- if(!box){box=document.createElement("div");
- Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});
- box.id="msgBox";document.body.appendChild(box);}
+ if(!box){
+   box=document.createElement("div");
+   Object.assign(box.style,{position:"fixed",bottom:"15px",left:"50%",transform:"translateX(-50%)",padding:"10px 18px",background:"#111",color:color,border:"1px solid "+color,borderRadius:"10px",fontFamily:"Poppins,sans-serif",zIndex:"9999"});
+   box.id="msgBox";document.body.appendChild(box);
+ }
  box.textContent=msg;setTimeout(()=>box.remove(),2500);
 }
 
@@ -134,11 +147,14 @@ async function refreshData(){
  $("bal").textContent=fmt(bal,dec);
  $("staked").textContent=fmt(info.amount,dec);
  $("pending").textContent=fmt(pending,dec);
+ showMsg("✅ อัปเดตข้อมูลแล้ว","lime");
  }catch(e){console.error(e);}
 }
 
 $("connectBtn").onclick=connect;
+$("refreshSmall").onclick=()=>refreshData();
 window.addEventListener("load",()=>{setTimeout(connect,1500)});
 </script>
+
 </body>
 </html>

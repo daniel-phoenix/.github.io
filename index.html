@@ -184,4 +184,24 @@ $("withdraw").onclick=async()=>{
  showMsg("⛽ รอการยืนยัน...");await tx.wait();
  showMsg("✅ ถอนสำเร็จ!");play("rewardSound");
  $("amount").value="";refreshData();
- }catch(e){console.error(e);showMsg(
+ }catch(e){console.error(e);showMsg("❌ ถอนล้มเหลว","red");}
+};
+
+$("claim").onclick=async()=>{
+ if(!signer)return showMsg(text[lang].needConnect,"red");
+ try{
+ const tx=await chef.deposit(0);
+ showMsg("🎁 กำลังรับรางวัล...");await tx.wait();
+ showMsg("✅ รับรางวัลสำเร็จ!");play("rewardSound");
+ pendingDisplay=0;refreshData();
+ }catch(e){console.error(e);showMsg("❌ รับรางวัลล้มเหลว","red");}
+};
+
+$("buyDNX").onclick=()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");
+
+async function updatePrice(){try{const r=await fetch(PANCAKE_API);const j=await r.json();if(j?.data?.price){priceUSD=parseFloat(j.data.price);}}catch{console.warn("ดึงราคาจาก PancakeSwap ไม่ได้");}}
+updatePrice();setInterval(updatePrice,60000);
+});
+</script>
+</body>
+</html>

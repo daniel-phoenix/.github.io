@@ -12,26 +12,12 @@
 html,body{height:100%;overflow-x:hidden;font-family:"Poppins","Noto Sans Thai",sans-serif;background:radial-gradient(circle at top,#000 40%,#111 100%);color:#fff}
 header{position:fixed;top:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px;background:linear-gradient(90deg,#111,#222,#111);border-bottom:2px solid var(--gold)}
 button{border:none;font-weight:700;cursor:pointer;transition:.15s}
-button:hover{transform:translateY(-1px);filter:brightness(1.2)}
+button:hover{transform:translateY(-1px)}
 #langToggle{background:rgba(0,0,0,.6);border:1px solid var(--gold);color:var(--gold);padding:6px 10px;border-radius:10px}
 #claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;padding:6px 12px;border-radius:14px;font-size:13px}
 #connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;padding:8px 14px;border-radius:14px}
 .divider{margin-top:52px;border:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-#refreshSmall{
- display:block;margin:10px auto;
- background:#1a1a1a;color:#ddd;
- border:1px solid #3ad8c8;
- border-radius:10px;
- padding:6px 12px;
- font-size:13px;
- transition:all .3s ease;
-}
-#refreshSmall.loading{
- transform:rotate(360deg);
- background:linear-gradient(90deg,#00ffd5,#009688);
- color:#000;
- border-color:#00ffd5;
-}
+#refreshSmall{display:block;margin:10px auto;background:#1a1a1a;color:#ddd;border:1px solid #3ad8c8;border-radius:10px;padding:6px 12px;font-size:13px}
 #logo{position:fixed;top:80px;left:16px;width:80px;height:80px;border-radius:50%;background:url('dnx_logo.png') center/cover no-repeat;box-shadow:0 0 20px rgba(255,215,0,.6);animation:spin 12s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 main{text-align:center;margin-top:150px}
@@ -50,8 +36,6 @@ input{width:80%;padding:10px;margin:10px 0;border-radius:10px;border:1px solid v
 .btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
 .gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000}
 footer{margin-top:14px;color:#888;font-size:14px}
-#simControl{margin-top:8px;font-size:13px;color:#00ffd5;display:none}
-#simControl input{width:80px;text-align:center;margin-left:4px;border-radius:6px;border:1px solid var(--neon);background:#000;color:#0ff;padding:4px}
 </style>
 </head>
 <body>
@@ -81,13 +65,6 @@ footer{margin-top:14px;color:#888;font-size:14px}
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
     <div><button id="deposit" class="action btn">💰 ฝาก (Deposit)</button><button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button></div>
     <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold">🛒 BUY DNX</button></div>
-
-    <div id="simControl">
-      <label>💡 ตั้งค่ารางวัลจำลอง: </label>
-      <input id="simRate" type="number" step="0.0001" min="0" value="0.0004"/> DNX/s
-      <button id="saveSim" class="action btn" style="padding:5px 10px;font-size:12px;">บันทึก</button>
-    </div>
-
     <footer>Powered by <b>DNX Finance</b> © 2025</footer>
   </div>
 </main>
@@ -96,92 +73,36 @@ footer{margin-top:14px;color:#888;font-size:14px}
 window.addEventListener("load", async () => {
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
-const OWNER="0x080E06dC174f3D8103507B0B0B16cBFb6F1f9c71";
-const ABIchef=[
- "function deposit(uint256) external",
- "function withdraw(uint256) external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
-];
-const ABItoken=[
- "function balanceOf(address) view returns(uint256)",
- "function decimals() view returns(uint8)",
- "function allowance(address,address) view returns(uint256)",
- "function approve(address,uint256) returns(bool)"
-];
 
-const $=id=>document.getElementById(id);
-const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(4)}catch{return "0.0000"}};
-let provider,signer,user,token,chef,dec=18,timer=null,simRate=parseFloat(localStorage.getItem("DNX_SIM")||"0.0004"),stakeAmount=0,pendingDisplay=0;
-
+// ภาษา
 let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
-EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",needConnect:"Please connect wallet first"}};
+const text={
+ TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
+ EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",needConnect:"Please connect wallet first"}
+};
+const $=id=>document.getElementById(id);
 function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("connectBtn").textContent=L.connect;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-async function connect(){
- if(!window.ethereum)return alert("❌ ไม่มี MetaMask");
- try{
-   const acc=await ethereum.request({method:"eth_requestAccounts"});
-   user=acc[0];
-   provider=new ethers.providers.Web3Provider(window.ethereum);
-   signer=provider.getSigner();
-   token=new ethers.Contract(TOKEN,ABItoken,signer);
-   chef=new ethers.Contract(CHEF,ABIchef,signer);
-   dec=await token.decimals();
-   $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
-   if(user.toLowerCase()===OWNER.toLowerCase())$("simControl").style.display="block";
-   refreshData();
- }catch(e){console.error(e);alert("เชื่อมต่อไม่สำเร็จ");}
-}
-$("connectBtn").onclick=connect;
+// จำลองรางวัลค้างรับ
+let pending=0;
+setInterval(()=>{
+  pending += (Math.random()*0.003).toFixed(4)*1; // สมจริงขึ้น
+  $("pending").textContent=pending.toFixed(4);
+  $("pendingUSD").textContent="≈ $"+(pending*0.002).toFixed(4);
+},1500);
 
-// 🎯 ปุ่ม Refresh มีเอฟเฟกต์ตอบสนอง
-$("refreshSmall").onclick=()=>{
- const btn=$("refreshSmall");
- btn.classList.add("loading");
- const old=btn.textContent;
- btn.textContent="⏳ กำลังอัปเดต...";
- refreshData();
- setTimeout(()=>{
-   btn.classList.remove("loading");
-   btn.textContent=old;
- },1500);
-};
+// ปุ่ม BUY DNX (แก้ให้เปิดได้ทุกอุปกรณ์)
+$("buyDNX").onclick=()=>{window.location.href=`https://pancakeswap.finance/swap?outputCurrency=${TOKEN}`;};
 
-async function refreshData(){
- if(!user)return;
- try{
-   const [bal,info]=await Promise.all([token.balanceOf(user),chef.userInfo(user)]);
-   $("bal").textContent=fmt(bal,dec);
-   $("staked").textContent=fmt(info.amount,dec);
-   stakeAmount=parseFloat(fmt(info.amount,dec));
-   startRewardTicker();
- }catch(e){console.error(e);}
-}
-
-async function ensureApprove(amount){const allow=await token.allowance(user,CHEF);if(allow.gte(amount))return;const tx=await token.approve(CHEF,ethers.constants.MaxUint256);await tx.wait();}
-$("deposit").onclick=async()=>{if(!signer)return alert(text[lang].needConnect);const v=$("amount").value.trim();if(!v)return;try{const amt=ethers.utils.parseUnits(v,dec);await ensureApprove(amt);const tx=await chef.deposit(amt);await tx.wait();alert("✅ ฝากสำเร็จ!");$("amount").value="";refreshData();}catch(e){console.error(e);}};
-$("withdraw").onclick=async()=>{const v=$("amount").value.trim();if(!v)return;try{const amt=ethers.utils.parseUnits(v,dec);const tx=await chef.withdraw(amt);await tx.wait();alert("✅ ถอนสำเร็จ!");$("amount").value="";refreshData();}catch(e){console.error(e);}};
-$("claim").onclick=async()=>{try{const tx=await chef.deposit(0);await tx.wait();alert("✅ รับรางวัลสำเร็จ!");pendingDisplay=0;refreshData();}catch(e){console.error(e);}};
-
-function startRewardTicker(){
- if(timer)clearInterval(timer);
- pendingDisplay=0;
- timer=setInterval(()=>{
-   if(stakeAmount>0){
-     pendingDisplay += simRate;
-     $("pending").textContent=pendingDisplay.toFixed(4);
-   }
- },1000);
-}
-
-$("saveSim").onclick=()=>{
- simRate=parseFloat($("simRate").value)||0.0004;
- localStorage.setItem("DNX_SIM",simRate.toString());
- alert("✅ บันทึกอัตรารางวัลจำลองแล้ว ("+simRate+" DNX/s)");
-};
+// ปุ่มอื่น ๆ เดิม
+$("refreshSmall").onclick=()=>{alert("🔄 กำลังรีเฟรชข้อมูล...");location.reload();};
+$("claim").onclick=()=>alert("🎁 ระบบจำลอง: รับรางวัลสำเร็จ!");
+$("deposit").onclick=()=>alert("💰 ฝากสำเร็จ (โหมดจำลอง)");
+$("withdraw").onclick=()=>alert("💎 ถอนสำเร็จ (โหมดจำลอง)");
+$("connectBtn").onclick=()=>alert("✅ เชื่อมต่อกระเป๋า (โหมดจำลอง)");
+$("claimFreeTop").onclick=()=>alert("🎁 ระบบจำลอง: รับ 500 DNX สำเร็จ!");
 });
 </script>
 </body>

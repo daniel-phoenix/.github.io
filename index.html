@@ -60,11 +60,11 @@ footer{margin-top:14px;color:#888;font-size:14px}
       <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="waddr" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div><div id="pendingUSD">≈ — USD</div></div>
+      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="pending" class="value">—</div></div>
     </div>
 
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
-    <div><button id="deposit" class="action btn">💰 ฝาก (Deposit)</button><button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button></div>
+    <div><button id="deposit" class="action btn">💰 ฝาก (Stake)</button><button id="withdraw" class="action btn">💎 ถอน (Unstake)</button></div>
     <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold">🛒 BUY DNX</button></div>
 
     <footer>Powered by <b>DNX Finance</b> © 2025</footer>
@@ -73,18 +73,16 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
 <script>
 window.addEventListener("load", async () => {
-  // 👉 ใช้สัญญาจริงของ DNX Token + DNX Staking
   const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-  const CHEF  = "0x4CBc7013c8CF3347bba5775806C9Ec539Fe42E00"; // DNXStaking
+  const CHEF  = "0x4CBc7013c8CF3347bba5775806C9Ec539Fe42E00";
 
-  // ✅ ABI ของ DNXStaking (ตามที่คุณ Verify แล้ว)
+  // ✅ ABI ของ DNXStaking จริง
   const ABIchef = [
     "function stake(uint256 _amount) external",
     "function unstake(uint256 _amount) external",
     "function pendingReward(address _user) view returns (uint256)",
     "function stakes(address) view returns (uint256 amount,uint256 rewardDebt)"
   ];
-
   const ABItoken = [
     "function balanceOf(address) view returns(uint256)",
     "function decimals() view returns(uint8)",
@@ -93,75 +91,64 @@ window.addEventListener("load", async () => {
   ];
 
   const $ = id => document.getElementById(id);
-  const fmt = (bn, dec=18) => { try { return parseFloat(ethers.utils.formatUnits(bn, dec)).toFixed(4) } catch { return "0.0000" } };
+  const fmt = (bn, dec=18) => {try{return parseFloat(ethers.utils.formatUnits(bn, dec)).toFixed(4)}catch{return "0.0000"}};
+  let provider, signer, user, token, chef, dec=18;
 
-  let provider, signer, user, token, chef, dec = 18;
-
-  // 🌐 สลับภาษา TH/EN (ยังคงระบบเดิม)
+  // 🌐 ภาษา
   let lang = localStorage.getItem("DNX_LANG") || "TH";
   const text = {
     TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
     EN:{toggle:"TH",connect:"🔗 Connect Wallet",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Rewards",needConnect:"Please connect wallet first"}
   };
-  function applyLang(){
-    const L = text[lang];
-    $("langToggle").textContent = L.toggle;
-    $("connectBtn").textContent = L.connect;
-    $("lblWallet").textContent = L.wallet;
-    $("lblBal").textContent    = L.total;
-    $("lblStake").textContent  = L.stake;
-    $("lblReward").textContent = L.reward;
-  }
-  $("langToggle").onclick = ()=>{ lang = (lang === "TH") ? "EN" : "TH"; localStorage.setItem("DNX_LANG", lang); applyLang(); };
+  function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("connectBtn").textContent=L.connect;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
+  $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
   applyLang();
 
-  // 🔗 เชื่อมต่อกระเป๋า
+  // 🔗 Connect wallet
   async function connect(){
-    if(!window.ethereum) return alert("❌ ไม่มี MetaMask (เปิดผ่าน MetaMask Browser)");
+    if(!window.ethereum) return alert("❌ ไม่มี MetaMask");
     try{
-      const acc = await ethereum.request({ method: "eth_requestAccounts" });
-      user = acc[0];
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      signer = provider.getSigner();
-      token = new ethers.Contract(TOKEN, ABItoken, signer);
-      chef  = new ethers.Contract(CHEF,  ABIchef,  signer);
-      dec   = await token.decimals();
-      $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
+      const acc=await ethereum.request({method:"eth_requestAccounts"});
+      user=acc[0];
+      provider=new ethers.providers.Web3Provider(window.ethereum);
+      signer=provider.getSigner();
+      token=new ethers.Contract(TOKEN,ABItoken,signer);
+      chef=new ethers.Contract(CHEF,ABIchef,signer);
+      dec=await token.decimals();
+      $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
       refreshData();
-      // อัปเดตอัตโนมัติทุก 5 วินาที
-      setInterval(()=>{ if(user) refreshData(); }, 5000);
-    }catch(e){ console.error(e); alert("เชื่อมต่อไม่สำเร็จ"); }
+      setInterval(refreshData,5000);
+    }catch(e){console.error(e);alert("เชื่อมต่อไม่สำเร็จ");}
   }
-  $("connectBtn").onclick = connect;
+  $("connectBtn").onclick=connect;
 
-  // 🔄 ปุ่มรีเฟรช
-  $("refreshSmall").onclick = ()=>{
-    const btn = $("refreshSmall");
+  // 🔄 Refresh
+  $("refreshSmall").onclick=()=>{
+    const btn=$("refreshSmall");
     btn.classList.add("loading");
-    const old = btn.textContent;
-    btn.textContent = "⏳ กำลังอัปเดต...";
+    btn.textContent="⏳ กำลังอัปเดต...";
     refreshData().finally(()=>{
       btn.classList.remove("loading");
-      btn.textContent = old;
+      btn.textContent="🔄 Refresh";
     });
   };
 
-  // 📥 ดึงข้อมูลจริงจากสัญญา (ยอด/ฝาก/รางวัล)
+  // 📊 Refresh Data
   async function refreshData(){
     if(!user) return;
     try{
-      const [bal, info, reward] = await Promise.all([
+      const [bal, info, pending] = await Promise.all([
         token.balanceOf(user),
         chef.stakes(user),
         chef.pendingReward(user)
       ]);
-      $("bal").textContent    = fmt(bal, dec);
-      $("staked").textContent = fmt(info.amount, dec);
-      $("pending").textContent= fmt(reward, dec);
-    }catch(e){ console.error(e); }
+      $("bal").textContent = fmt(bal,dec);
+      $("staked").textContent = fmt(info.amount,dec);
+      $("pending").textContent = fmt(pending,dec);
+    }catch(e){console.error(e);}
   }
 
-  // ✅ อนุมัติโทเค็นก่อน stake (ครั้งเดียวพอ)
+  // 🪙 Approve
   async function ensureApprove(amount){
     const allow = await token.allowance(user, CHEF);
     if(allow.gte(amount)) return;
@@ -169,50 +156,49 @@ window.addEventListener("load", async () => {
     await tx.wait();
   }
 
-  // 💰 ฝาก (Stake)
-  $("deposit").onclick = async ()=>{
+  // 💰 Stake
+  $("deposit").onclick=async()=>{
     if(!signer) return alert(text[lang].needConnect);
-    const v = $("amount").value.trim(); if(!v) return;
+    const v=$("amount").value.trim();if(!v)return;
     try{
-      const amt = ethers.utils.parseUnits(v, dec);
+      const amt=ethers.utils.parseUnits(v,dec);
       await ensureApprove(amt);
-      const tx = await chef.stake(amt);
+      const tx=await chef.stake(amt);
       await tx.wait();
       alert("✅ ฝากสำเร็จ!");
-      $("amount").value = "";
+      $("amount").value="";
       refreshData();
-    }catch(e){ console.error(e); }
+    }catch(e){console.error(e);}
   };
 
-  // 💎 ถอน (Unstake)
-  $("withdraw").onclick = async ()=>{
+  // 💎 Unstake
+  $("withdraw").onclick=async()=>{
     if(!signer) return alert(text[lang].needConnect);
-    const v = $("amount").value.trim(); if(!v) return;
+    const v=$("amount").value.trim();if(!v)return;
     try{
-      const amt = ethers.utils.parseUnits(v, dec);
-      const tx = await chef.unstake(amt);
+      const amt=ethers.utils.parseUnits(v,dec);
+      const tx=await chef.unstake(amt);
       await tx.wait();
       alert("✅ ถอนสำเร็จ!");
-      $("amount").value = "";
+      $("amount").value="";
       refreshData();
-    }catch(e){ console.error(e); }
+    }catch(e){console.error(e);}
   };
 
-  // 🎁 เคลมรางวัล (ใช้ stake(0) ตามสัญญา)
-  $("claim").onclick = async ()=>{
+  // 🎁 Claim reward
+  $("claim").onclick=async()=>{
     if(!signer) return alert(text[lang].needConnect);
     try{
-      const tx = await chef.stake(0);
+      const tx=await chef.stake(0);
       await tx.wait();
       alert("✅ รับรางวัลสำเร็จ!");
       refreshData();
-    }catch(e){ console.error(e); }
+    }catch(e){console.error(e);}
   };
 
-  // 🛒 BUY DNX
-  $("buyDNX").onclick = ()=> {
-    const url = `https://pancakeswap.finance/swap?outputCurrency=${TOKEN}`;
-    window.location.href = url;
+  // 🛒 Buy DNX
+  $("buyDNX").onclick=()=>{
+    window.open(`https://pancakeswap.finance/swap?outputCurrency=${TOKEN}`,"_blank");
   };
 });
 </script>

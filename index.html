@@ -1,3 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 DNX STAKING ULTRA++</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.min.js"></script>
+<style>
+:root { --gold:#ffd700; --neon:#00ffd5; }
+body {
+  background: radial-gradient(circle at top,#000 40%,#111 100%);
+  color:#fff; font-family:"Poppins","Noto Sans Thai",sans-serif;
+  text-align:center; padding:30px;
+}
+button {
+  background:var(--gold); color:#000; border:none; padding:10px 20px;
+  margin:8px; border-radius:8px; font-weight:bold; cursor:pointer;
+}
+button:hover { background:var(--neon); }
+input { padding:8px; width:180px; text-align:center; margin:6px; border-radius:6px; }
+h1 { color:var(--gold); }
+#data { margin-top:20px; }
+</style>
+</head>
+<body>
+<h1>🌾 DNX STAKING ULTRA++</h1>
+<p>Connect Wallet: <span id="waddr">❌</span></p>
+<p>Balance: <span id="bal">0</span> DNX</p>
+<p>Staked: <span id="staked">0</span> DNX</p>
+<p>Pending Reward: <span id="pending">0</span> DNX</p>
+
+<input id="amount" placeholder="จำนวน DNX">
+<br>
+<button id="connectBtn">เชื่อมกระเป๋า</button>
+<button id="deposit">ฝาก</button>
+<button id="withdraw">ถอน</button>
+<button id="claim">เคลมรางวัล</button>
+<button id="buyDNX">ซื้อ DNX</button>
+
 <script>
 window.addEventListener("load", async () => {
   const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
@@ -9,98 +48,56 @@ window.addEventListener("load", async () => {
     "function allowance(address,address) view returns(uint256)",
     "function approve(address,uint256) returns(bool)"
   ];
-
   const ABIstaking = [
     "function stake(uint256) external",
     "function unstake(uint256) external",
     "function pendingReward(address) view returns(uint256)",
-    "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
-    "function totalStaked() view returns(uint256)",
-    "function rewardRate() view returns(uint256)"
+    "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
   ];
 
   const $ = id => document.getElementById(id);
-  const fmt = (bn, dec = 18) => {
-    try { return parseFloat(ethers.utils.formatUnits(bn, dec)).toFixed(4); }
-    catch { return "0.0000"; }
-  };
+  const fmt = (bn, dec=18)=>parseFloat(ethers.utils.formatUnits(bn, dec)).toFixed(4);
+  let provider, signer, user, token, staking, dec=18;
 
-  let provider, signer, user, token, staking, dec = 18;
-
-  async function connect() {
-    if (!window.ethereum) return alert("❌ กรุณาเปิด MetaMask");
-    try {
-      const acc = await ethereum.request({ method: "eth_requestAccounts" });
-      user = acc[0];
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      signer = provider.getSigner();
-      token = new ethers.Contract(TOKEN, ABItoken, signer);
-      staking = new ethers.Contract(STAKING, ABIstaking, signer);
-      dec = await token.decimals();
-      $("waddr").textContent = user.slice(0, 6) + "..." + user.slice(-4);
-      refreshData();
-      setInterval(refreshData, 5000); // อัปเดตทุก 5 วินาที
-    } catch (e) {
-      console.error(e);
-      alert("เชื่อมต่อไม่สำเร็จ");
-    }
+  async function connect(){
+    if(!window.ethereum) return alert("กรุณาเปิด MetaMask");
+    const acc = await ethereum.request({ method:"eth_requestAccounts" });
+    user = acc[0];
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    token = new ethers.Contract(TOKEN, ABItoken, signer);
+    staking = new ethers.Contract(STAKING, ABIstaking, signer);
+    dec = await token.decimals();
+    $("waddr").textContent = user.slice(0,6)+"..."+user.slice(-4);
+    refresh();
   }
-
   $("connectBtn").onclick = connect;
 
-  async function refreshData() {
-    if (!user) return;
-    try {
-      const [bal, info, pending] = await Promise.all([
-        token.balanceOf(user),
-        staking.userInfo(user),
-        staking.pendingReward(user)
-      ]);
-      $("bal").textContent = fmt(bal, dec);
-      $("staked").textContent = fmt(info.amount, dec);
-      $("pending").textContent = fmt(pending, dec);
-    } catch (e) { console.error(e); }
+  async function refresh(){
+    if(!user) return;
+    const [bal, info, reward] = await Promise.all([
+      token.balanceOf(user),
+      staking.userInfo(user),
+      staking.pendingReward(user)
+    ]);
+    $("bal").textContent = fmt(bal, dec);
+    $("staked").textContent = fmt(info.amount, dec);
+    $("pending").textContent = fmt(reward, dec);
   }
 
-  async function ensureApprove(amount) {
-    const allow = await token.allowance(user, STAKING);
-    if (allow.gte(amount)) return;
-    const tx = await token.approve(STAKING, ethers.constants.MaxUint256);
-    await tx.wait();
-  }
-
-  $("deposit").onclick = async () => {
-    const v = $("amount").value.trim();
-    if (!v) return;
-    const amt = ethers.utils.parseUnits(v, dec);
-    await ensureApprove(amt);
-    const tx = await staking.stake(amt);
-    await tx.wait();
-    alert("✅ ฝากสำเร็จ!");
-    $("amount").value = "";
-    refreshData();
+  $("deposit").onclick = async ()=>{
+    const amt = ethers.utils.parseUnits($("amount").value, dec);
+    const tx = await staking.stake(amt); await tx.wait(); refresh();
   };
-
-  $("withdraw").onclick = async () => {
-    const v = $("amount").value.trim();
-    if (!v) return;
-    const amt = ethers.utils.parseUnits(v, dec);
-    const tx = await staking.unstake(amt);
-    await tx.wait();
-    alert("✅ ถอนสำเร็จ!");
-    $("amount").value = "";
-    refreshData();
+  $("withdraw").onclick = async ()=>{
+    const amt = ethers.utils.parseUnits($("amount").value, dec);
+    const tx = await staking.unstake(amt); await tx.wait(); refresh();
   };
-
-  $("claim").onclick = async () => {
-    const tx = await staking.stake(0);
-    await tx.wait();
-    alert("✅ เคลมรางวัลสำเร็จ!");
-    refreshData();
+  $("claim").onclick = async ()=>{
+    const tx = await staking.stake(0); await tx.wait(); refresh();
   };
-
-  $("buyDNX").onclick = () => {
-    window.location.href = `https://pancakeswap.finance/swap?outputCurrency=${TOKEN}`;
-  };
+  $("buyDNX").onclick = ()=>window.open(`https://pancakeswap.finance/swap?outputCurrency=${TOKEN}`);
 });
 </script>
+</body>
+</html>

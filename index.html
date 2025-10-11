@@ -16,8 +16,6 @@ html,body{
   background:radial-gradient(circle at top,#000 40%,#111 100%);
   color:#fff;
 }
-
-/* Header */
 header{
   position:fixed;top:0;left:0;right:0;z-index:20;
   display:flex;justify-content:space-between;align-items:center;
@@ -41,14 +39,9 @@ button:hover{transform:translateY(-1px);filter:brightness(1.2)}
   border-radius:14px;
   box-shadow:0 0 10px rgba(255,215,0,.6);
 }
-
-/* Logo */
 #logo{
   position:fixed;
-  top:80px;
-  left:20px;
-  width:80px;
-  height:80px;
+  top:80px;left:20px;width:80px;height:80px;
   border-radius:50%;
   background:url('dnx_logo.png') center/cover no-repeat;
   box-shadow:0 0 30px rgba(255,215,0,.7);
@@ -56,14 +49,40 @@ button:hover{transform:translateY(-1px);filter:brightness(1.2)}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Neon border animation */
-@keyframes borderMove {
-  0% {border-image-source:linear-gradient(0deg,#00ffd5,#ffd700);}
-  50%{border-image-source:linear-gradient(180deg,#ffd700,#00ffd5);}
-  100%{border-image-source:linear-gradient(360deg,#00ffd5,#ffd700);}
+/* 🔁 ปุ่ม Refresh */
+#refreshSmall{
+  display:block;
+  margin:40px auto 10px auto; /* เลื่อนลงมาให้กดได้ในมือถือ */
+  background:#111;
+  color:#ddd;
+  border:1px solid var(--neon);
+  border-radius:10px;
+  padding:6px 14px;
+  font-size:14px;
+  transition:all .4s ease;
+  box-shadow:0 0 10px rgba(0,255,213,.4);
+  position:relative;
+  overflow:hidden;
+}
+@media(max-width:768px){
+  #refreshSmall{margin-top:65px;} /* เพิ่มช่องว่างบนมือถือ */
+}
+#refreshSmall::before{
+  content:'';
+  position:absolute;
+  top:0;left:-50%;
+  width:50%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(0,255,213,.8),transparent);
+  animation:shine 2s linear infinite;
+}
+@keyframes shine{100%{left:150%}}
+#refreshSmall.loading{
+  background:linear-gradient(90deg,#00ffd5,#009688);
+  color:#000;border-color:#00ffd5;
+  box-shadow:0 0 20px #00ffd5;
 }
 
-/* Title */
+/* เนื้อหา */
 main{text-align:center;margin-top:170px}
 h1{
   background:linear-gradient(90deg,#fff7b1,#ffd700,#ffb400);
@@ -81,39 +100,6 @@ marquee{
   font-size:14px;
   margin-bottom:15px;
 }
-
-/* Refresh Button */
-#refreshSmall{
-  display:block;
-  margin:15px auto;
-  background:#111;
-  color:#ddd;
-  border:1px solid var(--neon);
-  border-radius:10px;
-  padding:6px 14px;
-  font-size:14px;
-  transition:all .4s ease;
-  box-shadow:0 0 10px rgba(0,255,213,.4);
-  position:relative;
-  overflow:hidden;
-}
-#refreshSmall::before{
-  content:'';
-  position:absolute;
-  top:0;left:-50%;
-  width:50%;height:100%;
-  background:linear-gradient(120deg,transparent,rgba(0,255,213,.8),transparent);
-  animation:shine 2s linear infinite;
-}
-@keyframes shine{100%{left:150%}}
-#refreshSmall.loading{
-  background:linear-gradient(90deg,#00ffd5,#009688);
-  color:#000;
-  border-color:#00ffd5;
-  box-shadow:0 0 20px #00ffd5;
-}
-
-/* Card */
 .card{
   background:rgba(0,0,0,.7);
   border:4px solid transparent;
@@ -124,37 +110,24 @@ marquee{
   border-image-slice:1;
   animation:borderMove 6s linear infinite;
 }
+@keyframes borderMove {
+  0% {border-image-source:linear-gradient(0deg,#00ffd5,#ffd700);}
+  50%{border-image-source:linear-gradient(180deg,#ffd700,#00ffd5);}
+  100%{border-image-source:linear-gradient(360deg,#00ffd5,#ffd700);}
+}
 .statgrid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  margin-bottom:10px;
+  gap:10px;margin-bottom:10px;
 }
-.stat{
-  background:rgba(255,255,255,.05);
-  border:1px solid var(--neon);
-  border-radius:10px;
-  padding:10px;
-}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px}
 .stat .label{font-size:13px;opacity:.8}
 .stat .value{font-weight:800;color:var(--gold)}
 input{
-  width:80%;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-  border:1px solid var(--neon);
-  background:#000;
-  color:#00ffd5;
-  text-align:center;
+  width:80%;padding:10px;margin:10px 0;border-radius:10px;
+  border:1px solid var(--neon);background:#000;color:#00ffd5;text-align:center
 }
-.action{
-  border:none;
-  border-radius:10px;
-  padding:10px 16px;
-  margin:5px;
-  font-weight:800;
-}
+.action{border:none;border-radius:10px;padding:10px 16px;margin:5px;font-weight:800}
 .btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
 .gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000}
 footer{margin-top:14px;color:#888;font-size:14px}
@@ -274,7 +247,7 @@ $("claim").onclick=async()=>{
  alert("✅ เคลมรางวัลสำเร็จ");refresh();
 };
 
-// 🌐 ระบบภาษา
+// 🌐 ภาษา
 let lang=localStorage.getItem("DNX_LANG")||"TH";
 const text={
  TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
@@ -291,7 +264,7 @@ function applyLang(){
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// ⚙️ แผง Admin ปรับอัตรารางวัล
+// ⚙️ Admin Panel
 async function showAdminPanel(){
  try{
    const owner=await v2.owner();

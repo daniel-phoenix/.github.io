@@ -7,26 +7,32 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
-:root{
-  --gold:#ffd700;
-  --neon:#00ffd5;
+:root {
+  --gold: #ffd700;
+  --neon: #00ffd5;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
-  height:100%;overflow-x:hidden;
+  height:100%;
+  overflow-x:hidden;
   font-family:"Poppins","Noto Sans Thai",sans-serif;
   background:radial-gradient(circle at top,#000 40%,#111 100%);
   color:#fff;
 }
+
+/* Header */
 header{
-  position:fixed;top:0;left:0;right:0;z-index:20;
+  position:fixed;
+  top:0;left:0;right:0;z-index:20;
   display:flex;justify-content:space-between;align-items:center;
-  padding:8px 12px;background:linear-gradient(90deg,#111,#1a1a1a,#111);
+  padding:8px 12px;
+  background:linear-gradient(90deg,#111,#1a1a1a,#111);
   border-bottom:2px solid var(--gold);
-  box-shadow:0 0 15px rgba(255,215,0,.2);
+  box-shadow:0 0 15px rgba(255,215,0,.3);
 }
 button{cursor:pointer;border:none;font-weight:700;transition:.2s}
-button:hover{filter:brightness(1.2);transform:translateY(-1px)}
+button:hover{transform:translateY(-1px);filter:brightness(1.2)}
+
 #langToggle{
   background:rgba(0,0,0,.7);
   border:1px solid var(--gold);
@@ -34,51 +40,66 @@ button:hover{filter:brightness(1.2);transform:translateY(-1px)}
   padding:6px 10px;
   border-radius:10px;
 }
-#claimFreeTop{
+#buyBtn{
   background:linear-gradient(90deg,#00ffd5,#00c8a7);
-  color:#000;padding:6px 12px;border-radius:14px;font-size:13px;
+  color:#000;
+  padding:6px 12px;
+  border-radius:12px;
+  font-size:13px;
   box-shadow:0 0 10px #00ffd5;
 }
 #connectBtn{
   background:linear-gradient(90deg,#ffd700,#ff9d00);
-  color:#000;padding:8px 14px;border-radius:14px;
+  color:#000;
+  padding:8px 14px;
+  border-radius:14px;
   box-shadow:0 0 10px rgba(255,215,0,.6);
 }
+
+/* Logo */
 #logo{
-  position:fixed;top:80px;left:20px;width:80px;height:80px;
-  border-radius:50%;background:url('dnx_logo.png') center/cover no-repeat;
+  position:fixed;
+  top:100px;
+  left:20px;
+  width:80px;height:80px;
+  border-radius:50%;
+  background:url('dnx_logo.png') center/cover no-repeat;
   box-shadow:0 0 30px rgba(255,215,0,.7);
   animation:spin 10s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-main{text-align:center;margin-top:160px}
+
+/* Neon Border Animation */
+@keyframes borderGlow {
+  0% { box-shadow:0 0 15px #00ffd5, inset 0 0 15px #00ffd5; }
+  50%{ box-shadow:0 0 25px #ffd700, inset 0 0 25px #ffd700; }
+  100%{ box-shadow:0 0 15px #00ffd5, inset 0 0 15px #00ffd5; }
+}
+
+/* Main */
+main{text-align:center;margin-top:180px}
 h1{
-  color:var(--gold);font-size:2rem;
+  color:var(--gold);
+  font-size:2rem;
   text-shadow:0 0 25px rgba(255,215,0,.8);
-  animation:glow 2s ease-in-out infinite alternate;
+  margin-bottom:20px;
 }
-@keyframes glow{
-  from{text-shadow:0 0 10px #ffd700,0 0 20px #ff9d00;}
-  to{text-shadow:0 0 25px #ffef99,0 0 40px #fff8dc;}
+marquee{
+  color:#00ffd5;
+  font-weight:700;
+  font-size:14px;
+  margin-bottom:10px;
 }
-#refreshSmall{
-  display:block;margin:10px auto;
-  background:#111;color:#ddd;border:1px solid var(--neon);
-  border-radius:10px;padding:6px 14px;font-size:14px;
-  transition:all .4s ease;box-shadow:0 0 10px rgba(0,255,213,.4);
-}
-#refreshSmall.loading{
-  transform:rotate(360deg) scale(1.05);
-  background:linear-gradient(90deg,#00ffd5,#009688);
-  color:#000;border-color:#00ffd5;
-  box-shadow:0 0 20px #00ffd5;
-}
+
+/* Card */
 .card{
   background:rgba(0,0,0,.7);
   border:2px solid var(--gold);
   border-radius:16px;
-  box-shadow:0 0 25px rgba(255,215,0,.3);
-  padding:20px;width:min(95%,600px);margin:auto;margin-top:30px;
+  padding:20px;
+  width:min(95%,600px);
+  margin:auto;
+  animation:borderGlow 3s infinite alternate;
 }
 .statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
 .stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px}
@@ -98,69 +119,62 @@ footer{margin-top:14px;color:#888;font-size:14px}
 <body>
 <header>
   <button id="langToggle">EN</button>
-  <button id="claimFreeTop">🎁 Claim 500 DNX ฟรี</button>
+  <button id="buyBtn" onclick="window.open('https://pancakeswap.finance/swap?outputCurrency=0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62','_blank')">💰 BUY DNX</button>
   <button id="connectBtn">🔗 เชื่อมกระเป๋า</button>
 </header>
 
 <div id="logo"></div>
-<button id="refreshSmall">🔄 Refresh</button>
 
 <main>
+  <marquee>🔥 Earn Passive Income with DNX FARM ULTRA++ 🌾 Stake DNX, Claim Rewards, and Grow Together! 💎</marquee>
   <h1>🌾 DNX FARM ULTRA++</h1>
-  <div class="card">
+
+  <div id="poolV2" class="card">
     <div class="statgrid">
       <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="addr" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="staked" class="value">—</div></div>
-      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="reward" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="st2" class="value">—</div></div>
+      <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="rw2" class="value">—</div></div>
     </div>
-    <input id="amount" placeholder="กรอกจำนวน DNX">
+
+    <input id="amt" placeholder="กรอกจำนวน DNX">
     <div>
-      <button id="deposit" class="action btn">💰 ฝาก (Deposit)</button>
-      <button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button>
+      <button id="dep" class="action btn">💰 ฝาก (Deposit)</button>
+      <button id="wd" class="action btn">💎 ถอน (Withdraw)</button>
+      <button id="claim" class="action gold">🎁 เคลมรางวัล (Claim)</button>
     </div>
-    <button id="claim" class="action gold">🎁 เคลมรางวัล (Claim)</button>
-    <footer>Powered by <b>DNX Finance</b> © 2025</footer>
   </div>
 </main>
 
 <script>
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const STAKING_V2="0x6C3B00F3C1bE8872C3060bdBAFAE1Df677D8077F";
-const ABIchef=[
+const ABI_V2=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
  "function claim() external",
  "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function pendingReward(address) view returns(uint256)"
 ];
-const ABItoken=[
+const ABI_TOKEN=[
  "function balanceOf(address) view returns(uint256)",
  "function decimals() view returns(uint8)",
  "function allowance(address,address) view returns(uint256)",
  "function approve(address,uint256) returns(bool)"
 ];
-const $=id=>document.getElementById(id);
-const fmt=(n,dec=18)=>parseFloat(ethers.utils.formatUnits(n,dec)).toFixed(4);
-let provider,signer,user,token,chef,dec=18;
+let provider,signer,user,token,v2,decimals;
 
-// 🔄 ปุ่ม Refresh เอฟเฟกต์นีออน
-$("refreshSmall").onclick=()=>{
- const b=$("refreshSmall");
- b.classList.add("loading");
- setTimeout(()=>b.classList.remove("loading"),1200);
- refresh();
-};
+const $=id=>document.getElementById(id);
 
 async function connect(){
- if(!window.ethereum)return alert("❌ ไม่มี MetaMask");
+ if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
  const acc=await ethereum.request({method:"eth_requestAccounts"});
  user=acc[0];
  provider=new ethers.providers.Web3Provider(window.ethereum);
  signer=provider.getSigner();
- token=new ethers.Contract(TOKEN,ABItoken,signer);
- chef=new ethers.Contract(STAKING_V2,ABIchef,signer);
- dec=await token.decimals();
+ token=new ethers.Contract(TOKEN,ABI_TOKEN,signer);
+ v2=new ethers.Contract(STAKING_V2,ABI_V2,signer);
+ decimals=await token.decimals();
  $("addr").textContent=user.slice(0,6)+"..."+user.slice(-4);
  refresh();
 }
@@ -170,42 +184,42 @@ async function refresh(){
  if(!user)return;
  const [bal,info,pending]=await Promise.all([
    token.balanceOf(user),
-   chef.userInfo(user),
-   chef.pendingReward(user)
+   v2.userInfo(user),
+   v2.pendingReward(user)
  ]);
- $("bal").textContent=fmt(bal,dec);
- $("staked").textContent=fmt(info.amount,dec);
- $("reward").textContent=fmt(pending,dec);
+ $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
+ $("st2").textContent=(+ethers.utils.formatUnits(info.amount,decimals)).toFixed(4);
+ $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
 }
 
-// ฝาก / ถอน / เคลม
-async function ensureApprove(amount){
+async function ensureApprove(amt){
  const allow=await token.allowance(user,STAKING_V2);
- if(allow.gte(amount))return;
+ if(allow.gte(amt))return;
  const tx=await token.approve(STAKING_V2,ethers.constants.MaxUint256);
  await tx.wait();
 }
-$("deposit").onclick=async()=>{
- const v=$("amount").value.trim();
- if(!v)return;
- const amt=ethers.utils.parseUnits(v,dec);
+
+$("dep").onclick=async()=>{
+ const val=$("amt").value.trim();
+ if(!val)return alert("กรุณาใส่จำนวน");
+ const amt=ethers.utils.parseUnits(val,decimals);
  await ensureApprove(amt);
- const tx=await chef.deposit(amt);await tx.wait();
- alert("✅ ฝากสำเร็จ!");refresh();
+ const tx=await v2.deposit(amt);await tx.wait();
+ alert("✅ ฝากสำเร็จ");$("amt").value="";refresh();
 };
-$("withdraw").onclick=async()=>{
- const v=$("amount").value.trim();
- if(!v)return;
- const amt=ethers.utils.parseUnits(v,dec);
- const tx=await chef.withdraw(amt);await tx.wait();
- alert("✅ ถอนสำเร็จ!");refresh();
+$("wd").onclick=async()=>{
+ const val=$("amt").value.trim();
+ if(!val)return alert("กรุณาใส่จำนวน");
+ const amt=ethers.utils.parseUnits(val,decimals);
+ const tx=await v2.withdraw(amt);await tx.wait();
+ alert("✅ ถอนสำเร็จ");$("amt").value="";refresh();
 };
 $("claim").onclick=async()=>{
- const tx=await chef.claim();await tx.wait();
- alert("✅ เคลมรางวัลสำเร็จ!");refresh();
+ const tx=await v2.claim();await tx.wait();
+ alert("✅ เคลมรางวัลสำเร็จ");refresh();
 };
 
-// 🌐 ปุ่มภาษา (EN / TH)
+// 🌐 ระบบเปลี่ยนภาษา EN / TH
 let lang=localStorage.getItem("DNX_LANG")||"TH";
 const text={
  TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
@@ -219,7 +233,11 @@ function applyLang(){
  $("lblStake").textContent=L.stake;
  $("lblReward").textContent=L.reward;
 }
-$("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
+$("langToggle").onclick=()=>{
+ lang=(lang==="TH")?"EN":"TH";
+ localStorage.setItem("DNX_LANG",lang);
+ applyLang();
+};
 applyLang();
 </script>
 </body>

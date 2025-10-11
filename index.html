@@ -69,19 +69,16 @@ footer b{color:var(--gold)}
   </div>
 </main>
 
-<!-- ✅ เริ่มสคริปต์ทั้งหมดหลัง DOM โหลดเสร็จ -->
 <script>
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded",()=>{
 
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";
-const TREASURY="0x3F221Dd0A1ecBa6E3Ed3CA78aC7EeD0E99b12F70";
-
+const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5"; // ใส่สัญญาใหม่หลัง Deploy
 const ABI_V2=[
- "function deposit(uint256) external",
- "function withdraw(uint256) external",
+ "function deposit(uint256 amount) external",
+ "function withdraw(uint256 amount) external",
  "function claim() external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
+ "function users(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function pendingReward(address) view returns(uint256)",
  "function rewardRatePerSec() view returns(uint256)",
  "function setRewardRatePerSec(uint256) external",
@@ -96,15 +93,8 @@ const ABI_TOKEN=[
 let provider,signer,user,token,v2,decimals;
 const $=id=>document.getElementById(id);
 
-// ปุ่ม Refresh
-$("refreshSmall").onclick=()=>{
- const b=$("refreshSmall");
- b.classList.add("loading");
- refresh();
- setTimeout(()=>b.classList.remove("loading"),1200);
-};
+$("refreshSmall").onclick=()=>{const b=$("refreshSmall");b.classList.add("loading");refresh();setTimeout(()=>b.classList.remove("loading"),1200);};
 
-// เชื่อมต่อ MetaMask
 async function connect(){
  if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
  const acc=await ethereum.request({method:"eth_requestAccounts"});
@@ -120,12 +110,11 @@ async function connect(){
 }
 $("connectBtn").onclick=connect;
 
-// รีเฟรชข้อมูล
 async function refresh(){
  if(!user)return;
  const [bal,info,pending]=await Promise.all([
    token.balanceOf(user),
-   v2.userInfo(user),
+   v2.users(user),
    v2.pendingReward(user)
  ]);
  $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
@@ -133,7 +122,6 @@ async function refresh(){
  $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
 }
 
-// ตรวจสอบ approve DNX ก่อนฝาก
 async function ensureApprove(amt){
  const allow=await token.allowance(user,STAKING_V2);
  if(allow.gte(amt))return;
@@ -141,49 +129,42 @@ async function ensureApprove(amt){
  await tx.wait();
 }
 
-// ฝาก
 $("dep").onclick=async()=>{
  const val=$("amt").value.trim();
  if(!val)return alert("กรุณาใส่จำนวน");
  const amt=ethers.utils.parseUnits(val,decimals);
  await ensureApprove(amt);
- const tx=await v2.deposit(amt);await tx.wait();
- alert("✅ ฝากสำเร็จ");$("amt").value="";refresh();
+ const tx=await v2.deposit(amt);
+ await tx.wait();
+ alert("✅ ฝากสำเร็จ");
+ $("amt").value="";refresh();
 };
 
-// ถอน
 $("wd").onclick=async()=>{
  const val=$("amt").value.trim();
  if(!val)return alert("กรุณาใส่จำนวน");
  const amt=ethers.utils.parseUnits(val,decimals);
- const tx=await v2.withdraw(amt);await tx.wait();
- alert("✅ ถอนสำเร็จ");$("amt").value="";refresh();
+ const tx=await v2.withdraw(amt);
+ await tx.wait();
+ alert("✅ ถอนสำเร็จ");
+ $("amt").value="";refresh();
 };
 
-// เคลมรางวัล
 $("claim").onclick=async()=>{
- const tx=await v2.claim();await tx.wait();
- alert("✅ เคลมรางวัลสำเร็จ");refresh();
+ const tx=await v2.claim();
+ await tx.wait();
+ alert("✅ เคลมรางวัลสำเร็จ");
+ refresh();
 };
 
 // 🌐 ระบบภาษา
 let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={
- TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
- EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}
-};
-function applyLang(){
- const L=text[lang];
- $("langToggle").textContent=L.toggle;
- $("lblWallet").textContent=L.wallet;
- $("lblBal").textContent=L.total;
- $("lblStake").textContent=L.stake;
- $("lblReward").textContent=L.reward;
-}
+const text={TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}};
+function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// ⚙️ Admin Panel
+// ⚙️ แผง Admin
 async function showAdminPanel(){
  try{
    const owner=await v2.owner();
@@ -201,11 +182,13 @@ async function showAdminPanel(){
      <div id="rateResult" style="margin-top:8px;color:#00ffd5;font-size:13px;"></div>
      <button id="updateRate" class="action gold" style="display:none;margin-top:8px;">🚀 อัปเดตอัตราใหม่</button>`;
    document.querySelector("#poolV2").appendChild(box);
+
    const monthInput=box.querySelector("#monthPercent");
    const res=box.querySelector("#rateResult");
    const btnCalc=box.querySelector("#calcRate");
    const btnUpdate=box.querySelector("#updateRate");
    let newRateWei=null;
+
    btnCalc.onclick=()=>{
      const p=parseFloat(monthInput.value);
      if(isNaN(p)||p<=0){res.textContent="กรุณาใส่ตัวเลข > 0";return;}
@@ -215,6 +198,7 @@ async function showAdminPanel(){
      res.innerHTML=`➡️ rewardRatePerSec = <b>${newRateWei.toString()}</b><br>(≈ ${rate.toFixed(18)} DNX/s)`;
      btnUpdate.style.display="inline-block";
    };
+
    btnUpdate.onclick=async()=>{
      if(!newRateWei){alert("❌ ยังไม่ได้คำนวณ");return;}
      const tx=await v2.setRewardRatePerSec(newRateWei);
@@ -224,7 +208,7 @@ async function showAdminPanel(){
  }catch(e){console.log("ไม่ใช่ Owner หรือเกิดข้อผิดพลาด",e);}
 }
 
-}); // ✅ ปิด DOMContentLoaded
+});
 </script>
 </body>
 </html>

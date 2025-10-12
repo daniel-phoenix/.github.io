@@ -72,7 +72,6 @@ footer b{color:var(--gold)}
 <script>
 window.addEventListener("DOMContentLoaded",()=>{
 
-// === ใช้สัญญาจริงของพี่ ===
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const STAKING="0x95717993e8C3523a9cB458B4bF64b73859a9A243";
 const TREASURY="0x77a61de46C436FC79959817ea8E96D4fc80011A3";
@@ -160,7 +159,7 @@ $("claim").onclick=async()=>{
  alert("✅ เคลมรางวัลสำเร็จ!");refresh();
 };
 
-// 🌐 ภาษา
+// ภาษา
 let lang=localStorage.getItem("DNX_LANG")||"TH";
 const text={
  TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
@@ -177,7 +176,7 @@ function applyLang(){
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// ⚙️ Admin Panel
+// Admin Panel
 async function showAdminPanel(){
  try{
    const owner=await staking.owner();

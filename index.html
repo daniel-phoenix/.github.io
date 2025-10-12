@@ -17,21 +17,8 @@ button:hover{transform:translateY(-1px);filter:brightness(1.2)}
 #claimFreeTop{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000;padding:6px 12px;border-radius:14px;font-size:13px}
 #connectBtn{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000;padding:8px 14px;border-radius:14px}
 .divider{margin-top:52px;border:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-#refreshSmall{
- display:block;margin:10px auto;
- background:#1a1a1a;color:#ddd;
- border:1px solid #3ad8c8;
- border-radius:10px;
- padding:6px 12px;
- font-size:13px;
- transition:all .3s ease;
-}
-#refreshSmall.loading{
- transform:rotate(360deg);
- background:linear-gradient(90deg,#00ffd5,#009688);
- color:#000;
- border-color:#00ffd5;
-}
+#refreshSmall{display:block;margin:10px auto;background:#1a1a1a;color:#ddd;border:1px solid #3ad8c8;border-radius:10px;padding:6px 12px;font-size:13px;transition:all .3s ease;}
+#refreshSmall.loading{transform:rotate(360deg);background:linear-gradient(90deg,#00ffd5,#009688);color:#000;border-color:#00ffd5;}
 #logo{position:fixed;top:80px;left:16px;width:80px;height:80px;border-radius:50%;background:url('dnx_logo.png') center/cover no-repeat;box-shadow:0 0 20px rgba(255,215,0,.6);animation:spin 12s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 main{text-align:center;margin-top:150px}
@@ -80,7 +67,7 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
     <input id="amount" placeholder="กรอกจำนวน DNX"/>
     <div><button id="deposit" class="action btn">💰 ฝาก (Deposit)</button><button id="withdraw" class="action btn">💎 ถอน (Withdraw)</button></div>
-    <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold">🛒 BUY DNX</button></div>
+    <div><button id="claim" class="action gold">🎁 รับรางวัล (Claim)</button><button id="buyDNX" class="action gold" onclick="window.open('https://pancakeswap.finance/swap?outputCurrency=0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62','_blank')">🛒 BUY DNX</button></div>
 
     <div id="simControl">
       <label>💡 ตั้งค่ารางวัลจำลอง: </label>
@@ -94,24 +81,28 @@ footer{margin-top:14px;color:#888;font-size:14px}
 
 <script>
 window.addEventListener("load", async () => {
-const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const CHEF="0x9D9649e1710eF013465C34146874F967EEE73B03";
-const OWNER="0x080E06dC174f3D8103507B0B0B16cBFb6F1f9c71";
-const ABIchef=[
+
+// ✅ Address จริงทั้งหมด
+const TOKEN    = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
+const STAKING  = "0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";
+const TREASURY = "0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";
+
+// ABI ที่จำเป็น
+const ABI_STAKING = [
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)"
+ "function userInfo(address) view returns (uint256 amount, uint256 rewardDebt)"
 ];
-const ABItoken=[
- "function balanceOf(address) view returns(uint256)",
- "function decimals() view returns(uint8)",
- "function allowance(address,address) view returns(uint256)",
- "function approve(address,uint256) returns(bool)"
+const ABI_TOKEN = [
+ "function balanceOf(address) view returns (uint256)",
+ "function decimals() view returns (uint8)",
+ "function allowance(address,address) view returns (uint256)",
+ "function approve(address,uint256) returns (bool)"
 ];
 
 const $=id=>document.getElementById(id);
 const fmt=(bn,dec=18)=>{try{return parseFloat(ethers.utils.formatUnits(bn,dec)).toFixed(4)}catch{return "0.0000"}};
-let provider,signer,user,token,chef,dec=18,timer=null,simRate=parseFloat(localStorage.getItem("DNX_SIM")||"0.0004"),stakeAmount=0,pendingDisplay=0;
+let provider,signer,user,token,staking,dec=18,timer=null,simRate=parseFloat(localStorage.getItem("DNX_SIM")||"0.0004"),stakeAmount=0,pendingDisplay=0;
 
 let lang=localStorage.getItem("DNX_LANG")||"TH";
 const text={TH:{toggle:"EN",connect:"🔗 เชื่อมกระเป๋า",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ",needConnect:"กรุณาเชื่อมกระเป๋าก่อน"},
@@ -120,6 +111,7 @@ function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
+// 🔗 Connect Wallet
 async function connect(){
  if(!window.ethereum)return alert("❌ ไม่มี MetaMask");
  try{
@@ -127,33 +119,30 @@ async function connect(){
    user=acc[0];
    provider=new ethers.providers.Web3Provider(window.ethereum);
    signer=provider.getSigner();
-   token=new ethers.Contract(TOKEN,ABItoken,signer);
-   chef=new ethers.Contract(CHEF,ABIchef,signer);
+   token=new ethers.Contract(TOKEN,ABI_TOKEN,signer);
+   staking=new ethers.Contract(STAKING,ABI_STAKING,signer);
    dec=await token.decimals();
    $("waddr").textContent=user.slice(0,6)+"..."+user.slice(-4);
-   if(user.toLowerCase()===OWNER.toLowerCase())$("simControl").style.display="block";
    refreshData();
  }catch(e){console.error(e);alert("เชื่อมต่อไม่สำเร็จ");}
 }
 $("connectBtn").onclick=connect;
 
-// 🎯 ปุ่ม Refresh มีเอฟเฟกต์ตอบสนอง
+// 🔁 Refresh ปุ่ม
 $("refreshSmall").onclick=()=>{
  const btn=$("refreshSmall");
  btn.classList.add("loading");
  const old=btn.textContent;
  btn.textContent="⏳ กำลังอัปเดต...";
  refreshData();
- setTimeout(()=>{
-   btn.classList.remove("loading");
-   btn.textContent=old;
- },1500);
+ setTimeout(()=>{btn.classList.remove("loading");btn.textContent=old;},1500);
 };
 
+// 📊 ดึงข้อมูล
 async function refreshData(){
  if(!user)return;
  try{
-   const [bal,info]=await Promise.all([token.balanceOf(user),chef.userInfo(user)]);
+   const [bal,info]=await Promise.all([token.balanceOf(user),staking.userInfo(user)]);
    $("bal").textContent=fmt(bal,dec);
    $("staked").textContent=fmt(info.amount,dec);
    stakeAmount=parseFloat(fmt(info.amount,dec));
@@ -161,11 +150,56 @@ async function refreshData(){
  }catch(e){console.error(e);}
 }
 
-async function ensureApprove(amount){const allow=await token.allowance(user,CHEF);if(allow.gte(amount))return;const tx=await token.approve(CHEF,ethers.constants.MaxUint256);await tx.wait();}
-$("deposit").onclick=async()=>{if(!signer)return alert(text[lang].needConnect);const v=$("amount").value.trim();if(!v)return;try{const amt=ethers.utils.parseUnits(v,dec);await ensureApprove(amt);const tx=await chef.deposit(amt);await tx.wait();alert("✅ ฝากสำเร็จ!");$("amount").value="";refreshData();}catch(e){console.error(e);}};
-$("withdraw").onclick=async()=>{const v=$("amount").value.trim();if(!v)return;try{const amt=ethers.utils.parseUnits(v,dec);const tx=await chef.withdraw(amt);await tx.wait();alert("✅ ถอนสำเร็จ!");$("amount").value="";refreshData();}catch(e){console.error(e);}};
-$("claim").onclick=async()=>{try{const tx=await chef.deposit(0);await tx.wait();alert("✅ รับรางวัลสำเร็จ!");pendingDisplay=0;refreshData();}catch(e){console.error(e);}};
+// ✅ ตรวจสอบและอนุมัติ
+async function ensureApprove(amount){
+ const allow=await token.allowance(user,STAKING);
+ if(allow.gte(amount))return;
+ const tx=await token.approve(STAKING,ethers.constants.MaxUint256);
+ await tx.wait();
+}
 
+// 💰 Deposit
+$("deposit").onclick=async()=>{
+ if(!signer)return alert(text[lang].needConnect);
+ const v=$("amount").value.trim();
+ if(!v)return;
+ try{
+   const amt=ethers.utils.parseUnits(v,dec);
+   await ensureApprove(amt);
+   const tx=await staking.deposit(amt);
+   await tx.wait();
+   alert("✅ ฝากสำเร็จ!");
+   $("amount").value="";
+   refreshData();
+ }catch(e){console.error(e);}
+};
+
+// 💎 Withdraw
+$("withdraw").onclick=async()=>{
+ const v=$("amount").value.trim();
+ if(!v)return;
+ try{
+   const amt=ethers.utils.parseUnits(v,dec);
+   const tx=await staking.withdraw(amt);
+   await tx.wait();
+   alert("✅ ถอนสำเร็จ!");
+   $("amount").value="";
+   refreshData();
+ }catch(e){console.error(e);}
+};
+
+// 🎁 Claim Reward
+$("claim").onclick=async()=>{
+ try{
+   const tx=await staking.deposit(0);
+   await tx.wait();
+   alert("✅ รับรางวัลสำเร็จ!");
+   pendingDisplay=0;
+   refreshData();
+ }catch(e){console.error(e);}
+};
+
+// ⏱ จำลองค้างรับ (Simulation)
 function startRewardTicker(){
  if(timer)clearInterval(timer);
  pendingDisplay=0;

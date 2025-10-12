@@ -71,9 +71,12 @@ footer b{color:var(--gold)}
 
 <script>
 window.addEventListener("DOMContentLoaded",()=>{
+// === Address จริงของระบบ DNX ===
+const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";       // DNX Token
+const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5"; // DNXStakingMC
+const TREASURY="0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";   // DNXTreasury
 
-const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5"; // ใส่สัญญาใหม่หลัง Deploy
+// === ABI สรุป ===
 const ABI_V2=[
  "function deposit(uint256 amount) external",
  "function withdraw(uint256 amount) external",
@@ -90,11 +93,17 @@ const ABI_TOKEN=[
  "function allowance(address,address) view returns(uint256)",
  "function approve(address,uint256) returns(bool)"
 ];
-let provider,signer,user,token,v2,decimals;
+const ABI_TREASURY=[
+ "function dnxBalance() view returns(uint256)"
+];
+
+let provider,signer,user,token,v2,treasury,decimals;
 const $=id=>document.getElementById(id);
 
+// ปุ่มรีเฟรช
 $("refreshSmall").onclick=()=>{const b=$("refreshSmall");b.classList.add("loading");refresh();setTimeout(()=>b.classList.remove("loading"),1200);};
 
+// เชื่อมต่อกระเป๋า
 async function connect(){
  if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
  const acc=await ethereum.request({method:"eth_requestAccounts"});
@@ -103,6 +112,7 @@ async function connect(){
  signer=provider.getSigner();
  token=new ethers.Contract(TOKEN,ABI_TOKEN,signer);
  v2=new ethers.Contract(STAKING_V2,ABI_V2,signer);
+ treasury=new ethers.Contract(TREASURY,ABI_TREASURY,signer);
  decimals=await token.decimals();
  $("addr").textContent=user.slice(0,6)+"..."+user.slice(-4);
  refresh();
@@ -110,6 +120,7 @@ async function connect(){
 }
 $("connectBtn").onclick=connect;
 
+// รีเฟรชข้อมูล
 async function refresh(){
  if(!user)return;
  const [bal,info,pending]=await Promise.all([
@@ -122,6 +133,7 @@ async function refresh(){
  $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
 }
 
+// ตรวจสอบอนุมัติ
 async function ensureApprove(amt){
  const allow=await token.allowance(user,STAKING_V2);
  if(allow.gte(amt))return;
@@ -129,6 +141,7 @@ async function ensureApprove(amt){
  await tx.wait();
 }
 
+// ฝาก
 $("dep").onclick=async()=>{
  const val=$("amt").value.trim();
  if(!val)return alert("กรุณาใส่จำนวน");
@@ -136,35 +149,34 @@ $("dep").onclick=async()=>{
  await ensureApprove(amt);
  const tx=await v2.deposit(amt);
  await tx.wait();
- alert("✅ ฝากสำเร็จ");
- $("amt").value="";refresh();
+ alert("✅ ฝากสำเร็จ");$("amt").value="";refresh();
 };
 
+// ถอน
 $("wd").onclick=async()=>{
  const val=$("amt").value.trim();
  if(!val)return alert("กรุณาใส่จำนวน");
  const amt=ethers.utils.parseUnits(val,decimals);
  const tx=await v2.withdraw(amt);
  await tx.wait();
- alert("✅ ถอนสำเร็จ");
- $("amt").value="";refresh();
+ alert("✅ ถอนสำเร็จ");$("amt").value="";refresh();
 };
 
+// เคลม
 $("claim").onclick=async()=>{
  const tx=await v2.claim();
  await tx.wait();
- alert("✅ เคลมรางวัลสำเร็จ");
- refresh();
+ alert("✅ เคลมรางวัลสำเร็จ");refresh();
 };
 
-// 🌐 ระบบภาษา
+// === ระบบภาษา ===
 let lang=localStorage.getItem("DNX_LANG")||"TH";
 const text={TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}};
 function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// ⚙️ แผง Admin
+// === แผง Admin ===
 async function showAdminPanel(){
  try{
    const owner=await v2.owner();
@@ -207,7 +219,6 @@ async function showAdminPanel(){
    };
  }catch(e){console.log("ไม่ใช่ Owner หรือเกิดข้อผิดพลาด",e);}
 }
-
 });
 </script>
 </body>

@@ -11,12 +11,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow-x:hidden;font-family:"Poppins","Noto Sans Thai",sans-serif;background:radial-gradient(circle at top,#000 40%,#111 100%);color:#fff}
 header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:linear-gradient(90deg,#111,#222,#111);border-bottom:2px solid var(--gold)}
+h1{color:var(--gold);margin-bottom:10px;text-shadow:0 0 8px #000}
 button{border:none;font-weight:700;cursor:pointer;transition:0.25s;padding:10px 16px;border-radius:6px}
 button:hover{transform:scale(1.05)}
 #connectButton{background:var(--gold);color:#000;font-weight:700}
 .container{padding-top:90px;text-align:center}
 .card{margin:auto;background:#111;border:2px solid var(--gold);border-radius:10px;padding:20px;max-width:380px;box-shadow:0 0 20px #000}
-h1{color:var(--gold);margin-bottom:10px}
 input{width:100%;padding:10px;border-radius:8px;border:1px solid var(--neon);background:#000;color:#fff;text-align:center;margin-top:10px}
 .action-btn{width:100%;margin-top:10px;font-weight:700;font-size:1rem}
 .deposit{background:var(--neon);color:#000}
@@ -24,6 +24,13 @@ input{width:100%;padding:10px;border-radius:8px;border:1px solid var(--neon);bac
 .claim{background:#ffd700;color:#000}
 .message{margin-top:10px;font-size:0.9rem;min-height:22px}
 footer{margin-top:25px;font-size:0.85rem;color:#aaa}
+.refresh-btn{margin:12px auto;padding:10px 20px;font-weight:700;font-size:1rem;border-radius:8px;position:relative;background:#000;color:var(--gold);border:2px solid var(--neon);overflow:hidden;cursor:pointer;transition:0.3s}
+.refresh-btn::before{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(120deg,transparent,var(--neon),transparent);animation:moveLight 2.5s linear infinite}
+@keyframes moveLight{0%{left:-100%}50%{left:100%}100%{left:100%}}
+.refresh-btn:hover{box-shadow:0 0 12px var(--neon)}
+.marquee{overflow:hidden;white-space:nowrap;box-sizing:border-box;color:var(--gold);font-weight:600;margin-top:10px}
+.marquee span{display:inline-block;padding-left:100%;animation:marquee 12s linear infinite}
+@keyframes marquee{0%{transform:translate(0,0)}100%{transform:translate(-100%,0)}}
 </style>
 </head>
 <body>
@@ -34,8 +41,10 @@ footer{margin-top:25px;font-size:0.85rem;color:#aaa}
 
 <div class="container">
   <div class="card">
-    <img src="https://daniel-phoenix.github.io/dnx_logo.png" alt="DNX" width="80" style="margin:10px auto;display:block">
-    <h1>ระบบฟาร์มเต็มรูปแบบ</h1>
+    <button class="refresh-btn" id="refreshBtn">🔁 Refresh</button>
+    <div class="marquee"><span>🌾 ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix 🌾</span></div>
+    <img src="https://daniel-phoenix.github.io/dnx_logo.png" alt="DNX" width="80" style="margin:15px auto;display:block">
+    <h1>DNX FARM ULTRA++</h1>
     <p>รับรางวัลจากเหรียญ Dynamix</p>
 
     <p style="margin-top:10px">🔹 Wallet: <span id="wallet">-</span></p>
@@ -54,16 +63,16 @@ footer{margin-top:25px;font-size:0.85rem;color:#aaa}
 </div>
 
 <script>
-const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
-const STAKING = "0x95717993e8C3523a9cB458B4bF64b73859a9A243";
-const TREASURY = "0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";
+const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
+const STAKING="0x95717993e8C3523a9cB458B4bF64b73859a9A243";
+const TREASURY="0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";
 
-const ABI_TOKEN = [
+const ABI_TOKEN=[
   "function approve(address spender,uint256 amount) public returns(bool)",
   "function allowance(address owner,address spender) public view returns(uint256)",
   "function balanceOf(address account) public view returns(uint256)"
 ];
-const ABI_STAKING = [
+const ABI_STAKING=[
   "function deposit(uint256 amount) public",
   "function withdraw(uint256 amount) public",
   "function claimReward() public",
@@ -71,7 +80,7 @@ const ABI_STAKING = [
   "function pendingReward(address user) public view returns(uint256)"
 ];
 
-let provider, signer, token, staking, account;
+let provider,signer,token,staking,account;
 
 function showMessage(msg,color="var(--gold)"){
   const el=document.getElementById("message");
@@ -96,9 +105,9 @@ async function connectWallet(){
 
 async function refreshBalances(){
   try{
-    const bal = await token.balanceOf(account);
-    const stake = await staking.getUserStake(account);
-    const reward = await staking.pendingReward(account);
+    const bal=await token.balanceOf(account);
+    const stake=await staking.getUserStake(account);
+    const reward=await staking.pendingReward(account);
     document.getElementById("totalBalance").innerText=(bal/1e18).toFixed(4);
     document.getElementById("stakedBalance").innerText=(stake/1e18).toFixed(4);
     document.getElementById("pendingReward").innerText=(reward/1e18).toFixed(6);
@@ -106,10 +115,10 @@ async function refreshBalances(){
 }
 
 async function ensureApproval(amount){
-  const allowance = await token.allowance(account,STAKING);
+  const allowance=await token.allowance(account,STAKING);
   if(allowance.lt(amount)){
     showMessage("กำลังอนุมัติสิทธิ์ใช้เหรียญ...");
-    const tx = await token.approve(STAKING,ethers.constants.MaxUint256);
+    const tx=await token.approve(STAKING,ethers.constants.MaxUint256);
     await tx.wait();
     showMessage("✅ อนุมัติเรียบร้อยแล้ว!");
   }
@@ -117,9 +126,9 @@ async function ensureApproval(amount){
 
 async function deposit(){
   try{
-    const amountInput=document.getElementById("amount").value;
-    if(!amountInput||amountInput<=0){return showMessage("กรุณากรอกจำนวน DNX","red");}
-    const amount=ethers.utils.parseEther(amountInput);
+    const val=document.getElementById("amount").value;
+    if(!val||val<=0)return showMessage("กรุณากรอกจำนวน DNX","red");
+    const amount=ethers.utils.parseEther(val);
     await ensureApproval(amount);
     showMessage("กำลังฝาก...");
     const tx=await staking.deposit(amount);
@@ -131,9 +140,9 @@ async function deposit(){
 
 async function withdraw(){
   try{
-    const amountInput=document.getElementById("amount").value;
-    if(!amountInput||amountInput<=0){return showMessage("กรุณากรอกจำนวนที่จะถอน","red");}
-    const amount=ethers.utils.parseEther(amountInput);
+    const val=document.getElementById("amount").value;
+    if(!val||val<=0)return showMessage("กรุณากรอกจำนวนที่จะถอน","red");
+    const amount=ethers.utils.parseEther(val);
     showMessage("กำลังถอน...");
     const tx=await staking.withdraw(amount);
     await tx.wait();
@@ -156,6 +165,7 @@ document.getElementById("connectButton").onclick=connectWallet;
 document.getElementById("depositBtn").onclick=deposit;
 document.getElementById("withdrawBtn").onclick=withdraw;
 document.getElementById("claimBtn").onclick=claim;
+document.getElementById("refreshBtn").onclick=()=>{if(account){refreshBalances();showMessage("🔄 รีเฟรชข้อมูลแล้ว ✅");}else{showMessage("กรุณาเชื่อมต่อกระเป๋าก่อน","red");}};
 </script>
 </body>
 </html>

@@ -55,6 +55,7 @@ footer b{color:var(--gold)}
       <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="st2" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="rw2" class="value">—</div></div>
+      <div class="stat"><div class="label">ยอดคลัง (Treasury)</div><div id="treasuryBal" class="value">—</div></div>
     </div>
     <input id="amt" placeholder="กรอกจำนวน DNX">
     <div>
@@ -69,19 +70,20 @@ footer b{color:var(--gold)}
   </div>
 </main>
 
-<!-- ✅ เริ่มสคริปต์ทั้งหมดหลัง DOM โหลดเสร็จ -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
 
+// ✅ Address จริง
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";
-const TREASURY="0x3F221Dd0A1ecBa6E3Ed3CA78aC7EeD0E99b12F70";
+const TREASURY="0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";
 
+// ✅ ABI ทั้ง 3 ตัว
 const ABI_V2=[
  "function deposit(uint256) external",
  "function withdraw(uint256) external",
  "function claim() external",
- "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
+ "function users(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function pendingReward(address) view returns(uint256)",
  "function rewardRatePerSec() view returns(uint256)",
  "function setRewardRatePerSec(uint256) external",
@@ -93,18 +95,17 @@ const ABI_TOKEN=[
  "function allowance(address,address) view returns(uint256)",
  "function approve(address,uint256) returns(bool)"
 ];
-let provider,signer,user,token,v2,decimals;
+const ABI_TREASURY=[
+ "function getBalance(address token) view returns(uint256)"
+];
+
+let provider,signer,user,token,v2,treasury,decimals;
 const $=id=>document.getElementById(id);
 
-// ปุ่ม Refresh
-$("refreshSmall").onclick=()=>{
- const b=$("refreshSmall");
- b.classList.add("loading");
- refresh();
- setTimeout(()=>b.classList.remove("loading"),1200);
-};
+// ปุ่มรีเฟรช
+$("refreshSmall").onclick=()=>{const b=$("refreshSmall");b.classList.add("loading");refresh();setTimeout(()=>b.classList.remove("loading"),1200);};
 
-// เชื่อมต่อ MetaMask
+// เชื่อมกระเป๋า
 async function connect(){
  if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
  const acc=await ethereum.request({method:"eth_requestAccounts"});
@@ -113,6 +114,7 @@ async function connect(){
  signer=provider.getSigner();
  token=new ethers.Contract(TOKEN,ABI_TOKEN,signer);
  v2=new ethers.Contract(STAKING_V2,ABI_V2,signer);
+ treasury=new ethers.Contract(TREASURY,ABI_TREASURY,signer);
  decimals=await token.decimals();
  $("addr").textContent=user.slice(0,6)+"..."+user.slice(-4);
  refresh();
@@ -123,17 +125,21 @@ $("connectBtn").onclick=connect;
 // รีเฟรชข้อมูล
 async function refresh(){
  if(!user)return;
- const [bal,info,pending]=await Promise.all([
+ try{
+ const [bal,info,pending,treBal]=await Promise.all([
    token.balanceOf(user),
-   v2.userInfo(user),
-   v2.pendingReward(user)
+   v2.users(user),
+   v2.pendingReward(user),
+   treasury.getBalance(TOKEN)
  ]);
  $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
  $("st2").textContent=(+ethers.utils.formatUnits(info.amount,decimals)).toFixed(4);
  $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
+ $("treasuryBal").textContent=(+ethers.utils.formatUnits(treBal,decimals)).toFixed(2);
+ }catch(err){console.error(err);}
 }
 
-// ตรวจสอบ approve DNX ก่อนฝาก
+// ตรวจ approve
 async function ensureApprove(amt){
  const allow=await token.allowance(user,STAKING_V2);
  if(allow.gte(amt))return;
@@ -160,30 +166,20 @@ $("wd").onclick=async()=>{
  alert("✅ ถอนสำเร็จ");$("amt").value="";refresh();
 };
 
-// เคลมรางวัล
+// เคลม
 $("claim").onclick=async()=>{
  const tx=await v2.claim();await tx.wait();
  alert("✅ เคลมรางวัลสำเร็จ");refresh();
 };
 
-// 🌐 ระบบภาษา
+// ภาษา
 let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={
- TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},
- EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}
-};
-function applyLang(){
- const L=text[lang];
- $("langToggle").textContent=L.toggle;
- $("lblWallet").textContent=L.wallet;
- $("lblBal").textContent=L.total;
- $("lblStake").textContent=L.stake;
- $("lblReward").textContent=L.reward;
-}
+const text={TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}};
+function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// ⚙️ Admin Panel
+// แผง Admin
 async function showAdminPanel(){
  try{
    const owner=await v2.owner();
@@ -224,7 +220,7 @@ async function showAdminPanel(){
  }catch(e){console.log("ไม่ใช่ Owner หรือเกิดข้อผิดพลาด",e);}
 }
 
-}); // ✅ ปิด DOMContentLoaded
+});
 </script>
 </body>
 </html>

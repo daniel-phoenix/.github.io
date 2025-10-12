@@ -83,7 +83,7 @@ const ABI_V2=[
  "function deposit(uint256 amount) external",
  "function withdraw(uint256 amount) external",
  "function claim() external",
- "function users(address) view returns(uint256 amount,uint256 rewardDebt)",
+ "function users(address) view returns(uint256 amount,uint256 rewardDebt)", // ✅ แก้ตรงนี้แล้ว
  "function pendingReward(address) view returns(uint256)",
  "function owner() view returns(address)"
 ];
@@ -123,16 +123,14 @@ $("connectBtn").onclick=connect;
 async function refresh(){
  if(!user)return;
  try{
-   const [bal,info,pending,treBal]=await Promise.all([
+   const [bal,info,pending]=await Promise.all([
      token.balanceOf(user),
      v2.users(user),
-     v2.pendingReward(user),
-     treasury.dnxBalance()
+     v2.pendingReward(user)
    ]);
    $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
    $("st2").textContent=(+ethers.utils.formatUnits(info.amount,decimals)).toFixed(4);
    $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
-   console.log("Treasury Balance:",(+ethers.utils.formatUnits(treBal,decimals)).toFixed(2));
  }catch(e){console.error("Refresh Error:",e);}
 }
 

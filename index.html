@@ -91,9 +91,9 @@ footer {
 </footer>
 
 <script>
-const TOKEN = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";     // DNXToken
-const STAKING = "0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";  // DNXStakingMC
-const TREASURY = "0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";  // DNXTreasury ใหม่ ✅
+const tokenAddress   = "0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
+const stakingAddress = "0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";
+const treasuryAddress = "0x3F221Dd0A1ecBa6E3Ed3CA78aC7EeD0E99b12F70";
 
 // ==== Minimal ABI ====
 const tokenABI = [
@@ -118,8 +118,8 @@ async function connectWallet(){
     signer = provider.getSigner();
     userAddr = await signer.getAddress();
     document.getElementById("wallet").innerText = userAddr.slice(0,6)+"..."+userAddr.slice(-4);
-    token = new ethers.Contract(TOKEN, tokenABI, signer);
-    staking = new ethers.Contract(STAKING, stakingABI, signer);
+    token = new ethers.Contract(tokenAddress, tokenABI, signer);
+    staking = new ethers.Contract(stakingAddress, stakingABI, signer);
     updateInfo();
   } else {
     alert("กรุณาติดตั้ง MetaMask ก่อนใช้งาน");
@@ -148,7 +148,7 @@ async function deposit(){
   if(!amount) return alert("กรุณากรอกจำนวน DNX");
   const decimals = await token.decimals();
   const value = ethers.utils.parseUnits(amount, decimals);
-  await token.approve(STAKING, value);
+  await token.approve(stakingAddress, value);
   const tx = await staking.deposit(value);
   await tx.wait();
   alert("ฝากสำเร็จ ✅");

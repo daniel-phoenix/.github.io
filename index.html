@@ -49,13 +49,13 @@ footer b{color:var(--gold)}
 <main>
   <h1>🌾 DNX FARM ULTRA++</h1>
   <marquee scrollamount="3">ระบบฟาร์มเต็มรูปแบบ รับรางวัลจากเหรียญ Dynamix</marquee>
+
   <div id="poolV2" class="card">
     <div class="statgrid">
       <div class="stat"><div class="label" id="lblWallet">กระเป๋า</div><div id="addr" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblBal">ยอด DNX ทั้งหมด</div><div id="bal" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblStake">จำนวน Stake</div><div id="st2" class="value">—</div></div>
       <div class="stat"><div class="label" id="lblReward">รางวัลค้างรับ</div><div id="rw2" class="value">—</div></div>
-      <div class="stat"><div class="label">ยอดคลัง (Treasury)</div><div id="treasuryBal" class="value">—</div></div>
     </div>
     <input id="amt" placeholder="กรอกจำนวน DNX">
     <div>
@@ -71,22 +71,20 @@ footer b{color:var(--gold)}
 </main>
 
 <script>
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded",()=>{
 
-// ✅ Address จริง
+// === Contract Address ===
 const TOKEN="0x7DB860CC9D7f64Ed1B39de6621ebc94440C8dc62";
 const STAKING_V2="0x32A2828c6A5F095d4e8F0687Cdcc39294923e7d5";
 const TREASURY="0xc7f1d5260C0e97E90EFbc9C989DF5193cfb3bE54";
 
-// ✅ ABI ทั้ง 3 ตัว
+// === ABI ===
 const ABI_V2=[
- "function deposit(uint256) external",
- "function withdraw(uint256) external",
+ "function deposit(uint256 amount) external",
+ "function withdraw(uint256 amount) external",
  "function claim() external",
  "function users(address) view returns(uint256 amount,uint256 rewardDebt)",
  "function pendingReward(address) view returns(uint256)",
- "function rewardRatePerSec() view returns(uint256)",
- "function setRewardRatePerSec(uint256) external",
  "function owner() view returns(address)"
 ];
 const ABI_TOKEN=[
@@ -96,16 +94,16 @@ const ABI_TOKEN=[
  "function approve(address,uint256) returns(bool)"
 ];
 const ABI_TREASURY=[
- "function getBalance(address token) view returns(uint256)"
+ "function dnxBalance() view returns(uint256)"
 ];
 
 let provider,signer,user,token,v2,treasury,decimals;
 const $=id=>document.getElementById(id);
 
-// ปุ่มรีเฟรช
+// 🔄 ปุ่ม Refresh
 $("refreshSmall").onclick=()=>{const b=$("refreshSmall");b.classList.add("loading");refresh();setTimeout(()=>b.classList.remove("loading"),1200);};
 
-// เชื่อมกระเป๋า
+// 🔗 เชื่อมต่อ MetaMask
 async function connect(){
  if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
  const acc=await ethereum.request({method:"eth_requestAccounts"});
@@ -118,28 +116,27 @@ async function connect(){
  decimals=await token.decimals();
  $("addr").textContent=user.slice(0,6)+"..."+user.slice(-4);
  refresh();
- showAdminPanel();
 }
 $("connectBtn").onclick=connect;
 
-// รีเฟรชข้อมูล
+// 📊 อัปเดตข้อมูล
 async function refresh(){
  if(!user)return;
  try{
- const [bal,info,pending,treBal]=await Promise.all([
-   token.balanceOf(user),
-   v2.users(user),
-   v2.pendingReward(user),
-   treasury.getBalance(TOKEN)
- ]);
- $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
- $("st2").textContent=(+ethers.utils.formatUnits(info.amount,decimals)).toFixed(4);
- $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
- $("treasuryBal").textContent=(+ethers.utils.formatUnits(treBal,decimals)).toFixed(2);
- }catch(err){console.error(err);}
+   const [bal,info,pending,treBal]=await Promise.all([
+     token.balanceOf(user),
+     v2.users(user),
+     v2.pendingReward(user),
+     treasury.dnxBalance()
+   ]);
+   $("bal").textContent=(+ethers.utils.formatUnits(bal,decimals)).toFixed(4);
+   $("st2").textContent=(+ethers.utils.formatUnits(info.amount,decimals)).toFixed(4);
+   $("rw2").textContent=(+ethers.utils.formatUnits(pending,decimals)).toFixed(6);
+   console.log("Treasury Balance:",(+ethers.utils.formatUnits(treBal,decimals)).toFixed(2));
+ }catch(e){console.error("Refresh Error:",e);}
 }
 
-// ตรวจ approve
+// ✅ ตรวจ Approve
 async function ensureApprove(amt){
  const allow=await token.allowance(user,STAKING_V2);
  if(allow.gte(amt))return;
@@ -147,78 +144,36 @@ async function ensureApprove(amt){
  await tx.wait();
 }
 
-// ฝาก
+// 💰 ฝาก
 $("dep").onclick=async()=>{
- const val=$("amt").value.trim();
- if(!val)return alert("กรุณาใส่จำนวน");
- const amt=ethers.utils.parseUnits(val,decimals);
- await ensureApprove(amt);
- const tx=await v2.deposit(amt);await tx.wait();
- alert("✅ ฝากสำเร็จ");$("amt").value="";refresh();
-};
-
-// ถอน
-$("wd").onclick=async()=>{
- const val=$("amt").value.trim();
- if(!val)return alert("กรุณาใส่จำนวน");
- const amt=ethers.utils.parseUnits(val,decimals);
- const tx=await v2.withdraw(amt);await tx.wait();
- alert("✅ ถอนสำเร็จ");$("amt").value="";refresh();
-};
-
-// เคลม
-$("claim").onclick=async()=>{
- const tx=await v2.claim();await tx.wait();
- alert("✅ เคลมรางวัลสำเร็จ");refresh();
-};
-
-// ภาษา
-let lang=localStorage.getItem("DNX_LANG")||"TH";
-const text={TH:{toggle:"EN",wallet:"กระเป๋า",total:"ยอด DNX ทั้งหมด",stake:"จำนวน Stake",reward:"รางวัลค้างรับ"},EN:{toggle:"TH",wallet:"Wallet",total:"Total DNX",stake:"Your Stake",reward:"Pending Reward"}};
-function applyLang(){const L=text[lang];$("langToggle").textContent=L.toggle;$("lblWallet").textContent=L.wallet;$("lblBal").textContent=L.total;$("lblStake").textContent=L.stake;$("lblReward").textContent=L.reward;}
-$("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
-applyLang();
-
-// แผง Admin
-async function showAdminPanel(){
  try{
-   const owner=await v2.owner();
-   if(owner.toLowerCase()!==user.toLowerCase())return;
-   const box=document.createElement("div");
-   box.style.marginTop="16px";
-   box.style.background="rgba(0,0,0,.6)";
-   box.style.border="1px solid var(--gold)";
-   box.style.borderRadius="10px";
-   box.style.padding="14px";
-   box.innerHTML=`
-     <h3 style="color:var(--gold);margin-bottom:6px;">⚙️ ตั้งค่าอัตรารางวัล (Admin)</h3>
-     <input id="monthPercent" type="number" step="0.01" min="0" value="30" style="width:120px;padding:6px;border-radius:6px;border:1px solid var(--neon);background:#000;color:#0ff;text-align:center"> %
-     <button id="calcRate" class="action btn" style="padding:6px 12px;margin-left:8px;">คำนวณ</button>
-     <div id="rateResult" style="margin-top:8px;color:#00ffd5;font-size:13px;"></div>
-     <button id="updateRate" class="action gold" style="display:none;margin-top:8px;">🚀 อัปเดตอัตราใหม่</button>`;
-   document.querySelector("#poolV2").appendChild(box);
-   const monthInput=box.querySelector("#monthPercent");
-   const res=box.querySelector("#rateResult");
-   const btnCalc=box.querySelector("#calcRate");
-   const btnUpdate=box.querySelector("#updateRate");
-   let newRateWei=null;
-   btnCalc.onclick=()=>{
-     const p=parseFloat(monthInput.value);
-     if(isNaN(p)||p<=0){res.textContent="กรุณาใส่ตัวเลข > 0";return;}
-     const secondsInMonth=30*24*60*60;
-     const rate=p/100/secondsInMonth;
-     newRateWei=ethers.utils.parseUnits(rate.toFixed(18),18);
-     res.innerHTML=`➡️ rewardRatePerSec = <b>${newRateWei.toString()}</b><br>(≈ ${rate.toFixed(18)} DNX/s)`;
-     btnUpdate.style.display="inline-block";
-   };
-   btnUpdate.onclick=async()=>{
-     if(!newRateWei){alert("❌ ยังไม่ได้คำนวณ");return;}
-     const tx=await v2.setRewardRatePerSec(newRateWei);
-     await tx.wait();
-     alert("✅ ปรับอัตรารางวัลสำเร็จ!");res.innerHTML+="<br>✅ Done";btnUpdate.style.display="none";
-   };
- }catch(e){console.log("ไม่ใช่ Owner หรือเกิดข้อผิดพลาด",e);}
-}
+   const val=$("amt").value.trim();
+   if(!val)return alert("กรุณาใส่จำนวน");
+   const amt=ethers.utils.parseUnits(val,decimals);
+   await ensureApprove(amt);
+   const tx=await v2.deposit(amt);await tx.wait();
+   alert("✅ ฝากสำเร็จ!");$("amt").value="";refresh();
+ }catch(e){console.error(e);alert("❌ ฝากไม่สำเร็จ");}
+};
+
+// 💎 ถอน
+$("wd").onclick=async()=>{
+ try{
+   const val=$("amt").value.trim();
+   if(!val)return alert("กรุณาใส่จำนวน");
+   const amt=ethers.utils.parseUnits(val,decimals);
+   const tx=await v2.withdraw(amt);await tx.wait();
+   alert("✅ ถอนสำเร็จ!");$("amt").value="";refresh();
+ }catch(e){console.error(e);alert("❌ ถอนล้มเหลว");}
+};
+
+// 🎁 เคลมรางวัล
+$("claim").onclick=async()=>{
+ try{
+   const tx=await v2.claim();await tx.wait();
+   alert("✅ เคลมรางวัลสำเร็จ!");refresh();
+ }catch(e){console.error(e);alert("❌ เคลมไม่สำเร็จ");}
+};
 
 });
 </script>

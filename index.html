@@ -176,7 +176,7 @@ function applyLang(){
 $("langToggle").onclick=()=>{lang=(lang==="TH")?"EN":"TH";localStorage.setItem("DNX_LANG",lang);applyLang();};
 applyLang();
 
-// Admin Panel
+// Admin Panel (เฉพาะ Owner)
 async function showAdminPanel(){
  try{
    const owner=await staking.owner();
@@ -194,11 +194,13 @@ async function showAdminPanel(){
      <div id="rateResult" style="margin-top:8px;color:#00ffd5;font-size:13px;"></div>
      <button id="updateRate" class="action gold" style="display:none;margin-top:8px;">🚀 อัปเดตอัตราใหม่</button>`;
    document.querySelector("#poolV2").appendChild(box);
+
    const monthInput=box.querySelector("#monthPercent");
    const res=box.querySelector("#rateResult");
    const btnCalc=box.querySelector("#calcRate");
    const btnUpdate=box.querySelector("#updateRate");
    let newRateWei=null;
+
    btnCalc.onclick=()=>{
      const p=parseFloat(monthInput.value);
      if(isNaN(p)||p<=0){res.textContent="กรุณาใส่ตัวเลข > 0";return;}
@@ -214,6 +216,16 @@ async function showAdminPanel(){
      await tx.wait();
      alert("✅ ปรับอัตรารางวัลสำเร็จ!");res.innerHTML+="<br>✅ Done";btnUpdate.style.display="none";
    };
+
+   // 🏦 แสดงยอดคงเหลือคลัง DNX (เฉพาะ Owner)
+   const tbal = await token.balanceOf(TREASURY);
+   const tbDnx = (+ethers.utils.formatUnits(tbal, decimals)).toFixed(2);
+   const info = document.createElement("div");
+   info.style.marginTop="8px";
+   info.style.color="var(--gold)";
+   info.innerHTML = `💰 คลัง DNX คงเหลือ: <b>${tbDnx}</b> DNX`;
+   box.appendChild(info);
+
  }catch(e){console.log("ไม่ใช่ Owner หรือเกิดข้อผิดพลาด",e);}
 }
 

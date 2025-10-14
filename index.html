@@ -8,283 +8,143 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <style>
-:root {
-  --gold: #ffd700;
-  --neon: #00ffd5;
-}
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Poppins", "Noto Sans Thai", sans-serif;
-}
+:root { --gold: #ffd700; --neon: #00ffd5; }
 body {
-  background: linear-gradient(to bottom, #111 0%, #000 85%);
-  color: white;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding-bottom: 80px;
+  background: linear-gradient(to bottom,#111,#000);
+  color: #fff; font-family: "Poppins","Noto Sans Thai",sans-serif;
+  text-align:center; padding-bottom:80px;
 }
-
-/* โลโก้เหรียญ GDSX */
-.logo {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  animation: spin 10s linear infinite, glow 2s ease-in-out infinite alternate;
-  box-shadow: 0 0 20px rgba(255,215,0,0.5);
-  filter: drop-shadow(0 0 10px rgba(255,215,0,0.6));
-  z-index: 10;
+.logo { position:fixed; top:15px; left:15px; width:70px; height:70px; border-radius:50%;
+  animation:spin 10s linear infinite,glow 2s ease-in-out infinite alternate;
+  box-shadow:0 0 20px rgba(255,215,0,.5); z-index:10;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes glow {
-  from { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-  to { box-shadow: 0 0 25px rgba(255,215,0,0.9); }
-}
-
-/* เงาสะท้อนทองใต้โลโก้ */
-.logo::after {
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  left: 10px;
-  width: 80%;
-  height: 15px;
-  background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 80%);
-  filter: blur(8px);
-}
-
-/* ส่วนหัว */
-header {
-  width: 100%;
-  text-align: center;
-  padding-top: 90px;
-}
-h1 {
-  color: var(--gold);
-  font-size: 1.8em;
-  text-shadow: 0 0 8px rgba(255,215,0,0.5);
-}
-.subtitle {
-  color: #ccc;
-  font-size: 0.9em;
-  margin-top: 5px;
-}
-
-/* ส่วนฟาร์ม */
-.panel {
-  margin-top: 25px;
-  width: 90%;
-  max-width: 420px;
-  background: rgba(20,20,20,0.85);
-  border: 1px solid var(--gold);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 12px rgba(255,215,0,0.2);
-}
-.panel h2 {
-  color: var(--gold);
-  margin-bottom: 10px;
-}
-.data { margin: 8px 0; }
-.data span {
-  color: var(--gold);
-  font-weight: 600;
-}
-button {
-  background: linear-gradient(90deg,#222,#444);
-  color: var(--gold);
-  border: 1px solid var(--gold);
-  border-radius: 10px;
-  padding: 10px 20px;
-  margin: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover { background: rgba(255,215,0,0.2); }
-
-/* ส่วนแอดมิน */
-.admin {
-  margin-top: 15px;
-  border-top: 1px dashed rgba(255,215,0,0.3);
-  padding-top: 10px;
-}
-.admin input {
-  width: 60%;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #555;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-/* Lucky Draw */
-.lucky {
-  margin-top: 20px;
-  background: rgba(255,215,0,0.05);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,215,0,0.3);
-}
-.lucky h3 { color: var(--gold); margin-bottom: 5px; }
-
-/* Popup Menu */
-.menu-toggle {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  font-size: 28px;
-  color: var(--gold);
-  cursor: pointer;
-  z-index: 2000;
-}
-.popup-menu {
-  position: fixed;
-  top: 0; right: -250px;
-  width: 250px; height: 100%;
-  background: rgba(20,20,20,0.95);
-  border-left: 2px solid var(--gold);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transition: 0.4s;
-  z-index: 1500;
-}
-.popup-menu.active { right: 0; }
-.popup-menu a {
-  color: var(--gold);
-  text-decoration: none;
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(255,215,0,0.3);
-}
-.popup-menu a:hover { background: rgba(255,215,0,0.1); }
-
-/* Footer */
-footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #111;
-  border-top: 1px solid rgba(255,215,0,0.3);
-  color: var(--gold);
-  font-size: 0.9em;
-  padding: 8px 0;
-  animation: glowText 3s infinite alternate;
-}
-@keyframes glowText {
-  from { text-shadow: 0 0 4px var(--gold); }
-  to { text-shadow: 0 0 12px var(--gold); }
-}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes glow{from{box-shadow:0 0 10px rgba(255,215,0,.4)}to{box-shadow:0 0 25px rgba(255,215,0,.9)}}
+header{padding-top:100px;}
+h1{color:var(--gold); text-shadow:0 0 8px rgba(255,215,0,.5);}
+.panel{margin:25px auto;width:90%;max-width:420px;background:rgba(20,20,20,.85);
+  border:1px solid var(--gold);border-radius:20px;padding:20px;}
+button{background:#222;color:var(--gold);border:1px solid var(--gold);
+  border-radius:10px;padding:10px 20px;margin:5px;cursor:pointer;}
+button:hover{background:rgba(255,215,0,.2);}
+footer{position:fixed;bottom:0;width:100%;background:#111;border-top:1px solid rgba(255,215,0,.3);
+  color:var(--gold);padding:8px 0;font-size:.9em;text-shadow:0 0 8px var(--gold);}
 </style>
 </head>
-
 <body>
 
-<!-- โลโก้ฝัง -->
 <img class="logo" src="data:image/png;base64,{{YOUR_GDSX_LOGO_BASE64}}" alt="GDSX Logo">
-
-<div class="menu-toggle" onclick="toggleMenu()">☰</div>
-
-<div id="popupMenu" class="popup-menu">
-  <a href="#farm">🌾 Farm</a>
-  <a href="#treasury">💰 Treasury</a>
-  <a href="#lucky">🎁 Lucky Draw</a>
-  <a href="#whitepaper">📄 Whitepaper</a>
-  <a href="#airdrop">🎈 Airdrop</a>
-  <a href="#community">💬 Community</a>
-</div>
 
 <header>
   <h1>🌾 GDSX FARM ULTRA++</h1>
-  <p class="subtitle">Gold Digital System X — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
+  <p>Gold Digital System X — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
 </header>
 
-<section id="farm" class="panel">
+<section class="panel">
   <h2>💰 Your Farm</h2>
-  <div class="data">Wallet: <span id="wallet">-</span></div>
-  <div class="data">Your Stake: <span id="stake">100</span> GDSX</div>
-  <div class="data">Pending Reward: <span id="reward">0.85</span> GDSX</div>
+  <div>Wallet: <span id="wallet">-</span></div>
+  <div>Your Stake: <span id="stake">0</span> GDSX</div>
+  <div>Pending Reward: <span id="reward">0</span> GDSX</div>
+
   <button onclick="connectWallet()">🔗 Connect Wallet</button>
   <button onclick="deposit()">Deposit</button>
   <button onclick="withdraw()">Withdraw</button>
   <button onclick="claim()">Claim</button>
-  <button onclick="refresh()">🔄 Refresh</button>
+  <button onclick="loadData()">🔄 Refresh</button>
 
-  <div class="admin" id="adminPanel">
-    <h3>⚙️ Admin Panel</h3>
-    <input type="number" id="rewardRate" placeholder="Reward Rate (Mock)">
-    <button onclick="setRewardRate()">Set Reward Rate</button>
-    <p>💰 Treasury Balance: <span id="treasuryBal">5000</span> GDSX</p>
-  </div>
-
-  <div class="lucky" id="lucky">
-    <h3>🎁 Lucky Draw Weekly</h3>
-    <p>จับรางวัลทุกวันอาทิตย์</p>
-    <p>เหลือเวลา: <span id="countdown">--:--:--</span></p>
-    <button id="drawBtn" onclick="drawLucky()">🎲 จับรางวัล</button>
-    <p id="luckyResult">ผู้โชคดี: -</p>
+  <div style="margin-top:20px;border-top:1px dashed rgba(255,215,0,0.3);padding-top:10px;">
+    <p>💰 Treasury Balance: <span id="treasuryBal">0</span> GDSX</p>
   </div>
 </section>
 
-<footer>
-🌟 The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่ 🌟
-</footer>
+<footer>🌟 The Future of Digital Gold 🌟</footer>
 
 <script>
-// === Mock Data Mode ===
-let provider, signer, account;
+const TOKEN = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const STAKING = "0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
+const TREASURY = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
 
-async function connectWallet() {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    account = await signer.getAddress();
-    document.getElementById("wallet").textContent = account;
-    alert("✅ Wallet connected!");
-  } else {
-    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อน");
-  }
-}
-function deposit(){ alert("📥 Deposit (Mock Mode)"); }
-function withdraw(){ alert("📤 Withdraw (Mock Mode)"); }
-function claim(){ alert("🎁 Claim Reward (Mock Mode)"); }
-function refresh(){ location.reload(); }
-function setRewardRate(){
-  const val = document.getElementById("rewardRate").value;
-  alert("⚙️ Reward rate set to " + val + " (Mock)");
-}
+const abiToken = [
+  "function approve(address spender,uint256 amount) external returns(bool)",
+  "function balanceOf(address) view returns(uint256)",
+  "function decimals() view returns(uint8)"
+];
+const abiStaking = [
+  "function deposit(uint256 amount) public",
+  "function withdraw(uint256 amount) public",
+  "function claim() public",
+  "function userInfo(address user) view returns(uint256 amount,uint256 rewardDebt)",
+  "function pendingReward(address user) view returns(uint256)"
+];
+const abiTreasury = [
+  "function dnxToken() view returns(address)",
+  "function balanceOf(address token) view returns(uint256)"
+];
 
-// === Lucky Draw ===
-function updateCountdown() {
-  const now = new Date();
-  const nextSun = new Date(now);
-  nextSun.setDate(now.getDate() + (7 - now.getDay()));
-  nextSun.setHours(0,0,0,0);
-  const diff = nextSun - now;
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff / 3600000) % 24);
-  const m = Math.floor((diff / 60000) % 60);
-  const s = Math.floor((diff / 1000) % 60);
-  document.getElementById("countdown").textContent = `${d}d ${h}h ${m}m ${s}s`;
-}
-setInterval(updateCountdown,1000);
+let provider, signer, walletAddr;
+let token, staking, treasury;
 
-function drawLucky(){
-  const users=["0x1234...ABCD","0x9F8a...E56C","0xAaa1...BbC3"];
-  const winner=users[Math.floor(Math.random()*users.length)];
-  document.getElementById("luckyResult").textContent="🎉 ผู้โชคดี: "+winner;
+async function connectWallet(){
+  if(!window.ethereum) return alert("⚠️ กรุณาติดตั้ง MetaMask");
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+  walletAddr = await signer.getAddress();
+  document.getElementById("wallet").textContent = walletAddr.slice(0,6)+"..."+walletAddr.slice(-4);
+  token = new ethers.Contract(TOKEN, abiToken, signer);
+  staking = new ethers.Contract(STAKING, abiStaking, signer);
+  treasury = new ethers.Contract(TREASURY, abiTreasury, provider);
+  loadData();
 }
 
-// === Popup Menu ===
-function toggleMenu(){document.getElementById("popupMenu").classList.toggle("active");}
+async function loadData(){
+  if(!signer) return;
+  try {
+    const [stakeInfo, pending] = await Promise.all([
+      staking.userInfo(walletAddr),
+      staking.pendingReward(walletAddr)
+    ]);
+    const decimals = await token.decimals();
+    const stakeVal = ethers.utils.formatUnits(stakeInfo.amount, decimals);
+    const pendingVal = ethers.utils.formatUnits(pending, decimals);
+    document.getElementById("stake").textContent = parseFloat(stakeVal).toFixed(4);
+    document.getElementById("reward").textContent = parseFloat(pendingVal).toFixed(4);
+
+    const bal = await token.balanceOf(TREASURY);
+    document.getElementById("treasuryBal").textContent = parseFloat(ethers.utils.formatUnits(bal, decimals)).toFixed(2);
+  } catch(err){ console.error(err); alert("Error loading data"); }
+}
+
+async function deposit(){
+  if(!signer) return;
+  const amount = prompt("จำนวน GDSX ที่ต้องการฝาก:");
+  if(!amount) return;
+  const decimals = await token.decimals();
+  const amtWei = ethers.utils.parseUnits(amount, decimals);
+  await token.approve(STAKING, amtWei);
+  const tx = await staking.deposit(amtWei);
+  await tx.wait();
+  alert("✅ Deposit สำเร็จ");
+  loadData();
+}
+
+async function withdraw(){
+  const amount = prompt("จำนวน GDSX ที่ต้องการถอน:");
+  if(!amount) return;
+  const decimals = await token.decimals();
+  const amtWei = ethers.utils.parseUnits(amount, decimals);
+  const tx = await staking.withdraw(amtWei);
+  await tx.wait();
+  alert("📤 Withdraw สำเร็จ");
+  loadData();
+}
+
+async function claim(){
+  const tx = await staking.claim();
+  await tx.wait();
+  alert("🎁 Claim สำเร็จ");
+  loadData();
+}
 </script>
 </body>
 </html>

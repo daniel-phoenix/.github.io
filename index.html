@@ -1,196 +1,135 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌾 GDSX FARM ULTRA++</title>
+<title>🌟 GDSX FARM ULTRA++</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
 <style>
-:root {
-  --gold: #ffd700;
-  --neon: #00ffd5;
+:root{
+  --gold:#ffd700;
+  --neon:#00ffd5;
 }
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Poppins", "Noto Sans Thai", sans-serif;
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;
+  overflow-x:hidden;
+  font-family:"Poppins","Noto Sans Thai",sans-serif;
+  background:radial-gradient(circle at top,#000 40%,#111 100%);
+  color:#fff;
 }
-body {
-  background: linear-gradient(to bottom, #111 0%, #000 85%);
-  color: white;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding-bottom: 80px;
+header{
+  position:fixed;top:0;left:0;right:0;
+  z-index:20;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;
+  background:linear-gradient(90deg,#111,#1a1a1a,#111);
+  border-bottom:2px solid var(--gold);
+  box-shadow:0 0 15px rgba(255,215,0,.3);
 }
-
-/* โลโก้เหรียญ GDSX */
-.logo {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  animation: spin 10s linear infinite, glow 2s ease-in-out infinite alternate;
-  box-shadow: 0 0 20px rgba(255,215,0,0.5);
-  filter: drop-shadow(0 0 10px rgba(255,215,0,0.6));
-  z-index: 10;
+button{
+  cursor:pointer;border:none;font-weight:700;transition:.2s;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes glow {
-  from { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-  to { box-shadow: 0 0 25px rgba(255,215,0,0.9); }
+button:hover{transform:translateY(-1px);filter:brightness(1.2)}
+#langToggle{
+  background:rgba(0,0,0,.7);
+  border:1px solid var(--gold);
+  color:var(--gold);
+  padding:6px 10px;border-radius:10px;
 }
-
-/* เงาสะท้อนทองใต้โลโก้ */
-.logo::after {
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  left: 10px;
-  width: 80%;
-  height: 15px;
-  background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 80%);
-  filter: blur(8px);
+#connectBtn{
+  background:linear-gradient(90deg,#ffd700,#ff9d00);
+  color:#000;
+  padding:8px 14px;border-radius:14px;
+  box-shadow:0 0 10px rgba(255,215,0,.6);
 }
-
-/* ส่วนหัว */
-header {
-  width: 100%;
-  text-align: center;
-  padding-top: 90px;
+#logo{
+  position:fixed;
+  top:80px;left:20px;
+  width:90px;height:90px;
+  border-radius:50%;
+  background:url('data:image/png;base64,
+{{ ที่นี่ให้ใส่ Base64 ของโลโก้ที่พี่ต้องการใช้ }}
+') center/cover no-repeat;
+  box-shadow:0 0 30px rgba(255,215,0,.7);
+  animation:spin 10s linear infinite;
+  filter:drop-shadow(0 0 8px rgba(255,215,0,0.8));
 }
-h1 {
-  color: var(--gold);
-  font-size: 1.8em;
-  text-shadow: 0 0 8px rgba(255,215,0,0.5);
-}
-.subtitle {
-  color: #ccc;
-  font-size: 0.9em;
-  margin-top: 5px;
-}
-
-/* ส่วนฟาร์ม */
-.panel {
-  margin-top: 25px;
-  width: 90%;
-  max-width: 420px;
-  background: rgba(20,20,20,0.85);
-  border: 1px solid var(--gold);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 12px rgba(255,215,0,0.2);
-}
-.panel h2 {
-  color: var(--gold);
-  margin-bottom: 10px;
-}
-.data { margin: 8px 0; }
-.data span {
-  color: var(--gold);
-  font-weight: 600;
-}
-button {
-  background: linear-gradient(90deg,#222,#444);
-  color: var(--gold);
-  border: 1px solid var(--gold);
-  border-radius: 10px;
-  padding: 10px 20px;
-  margin: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover { background: rgba(255,215,0,0.2); }
-
-/* ส่วนแอดมิน */
-.admin {
-  margin-top: 15px;
-  border-top: 1px dashed rgba(255,215,0,0.3);
-  padding-top: 10px;
-}
-.admin input {
-  width: 60%;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #555;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-/* Lucky Draw */
-.lucky {
-  margin-top: 20px;
-  background: rgba(255,215,0,0.05);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,215,0,0.3);
-}
-.lucky h3 { color: var(--gold); margin-bottom: 5px; }
-
-/* Popup Menu */
-.menu-toggle {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  font-size: 28px;
-  color: var(--gold);
-  cursor: pointer;
-  z-index: 2000;
-}
-.popup-menu {
-  position: fixed;
-  top: 0; right: -250px;
-  width: 250px; height: 100%;
-  background: rgba(20,20,20,0.95);
-  border-left: 2px solid var(--gold);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transition: 0.4s;
-  z-index: 1500;
-}
-.popup-menu.active { right: 0; }
-.popup-menu a {
-  color: var(--gold);
-  text-decoration: none;
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(255,215,0,0.3);
-}
-.popup-menu a:hover { background: rgba(255,215,0,0.1); }
-
-/* Footer */
-footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #111;
-  border-top: 1px solid rgba(255,215,0,0.3);
-  color: var(--gold);
-  font-size: 0.9em;
-  padding: 8px 0;
-  animation: glowText 3s infinite alternate;
-}
-@keyframes glowText {
-  from { text-shadow: 0 0 4px var(--gold); }
-  to { text-shadow: 0 0 12px var(--gold); }
-}
+@keyframes spin{to{transform:rotate(360deg)}}
+main{text-align:center;margin-top:180px}
+h1{color:var(--gold);font-size:2rem;text-shadow:0 0 25px rgba(255,215,0,.8);margin-bottom:8px}
+.subtitle{color:#ccc;font-size:.9em;text-shadow:0 0 10px rgba(255,215,0,.4);margin-bottom:15px}
+marquee{display:block;color:#00ffd5;font-weight:700;font-size:14px;margin-bottom:15px}
+#refreshSmall{display:block;margin:50px auto 10px;background:#111;color:#ddd;border:1px solid var(--neon);
+  border-radius:10px;padding:6px 14px;font-size:14px;transition:all .4s ease;
+  box-shadow:0 0 10px rgba(0,255,213,.4);position:relative;overflow:hidden}
+#refreshSmall::before{content:'';position:absolute;top:0;left:-50%;width:50%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(0,255,213,.8),transparent);
+  animation:shine 2s linear infinite}
+@keyframes shine{100%{left:150%}}
+.card{background:rgba(0,0,0,.7);border:1px solid var(--gold);border-radius:16px;
+  padding:20px;width:min(95%,600px);margin:auto}
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--neon);border-radius:10px;padding:10px}
+.stat .label{font-size:13px;opacity:.8}
+.stat .value{font-weight:800;color:var(--gold)}
+input{width:80%;padding:10px;margin:10px 0;border-radius:10px;border:1px solid var(--neon);
+  background:#000;color:#00ffd5;text-align:center}
+.action{border:none;border-radius:10px;padding:10px 16px;margin:5px;font-weight:800}
+.btn{background:linear-gradient(90deg,#00ffd5,#00c8a7);color:#000}
+.gold{background:linear-gradient(90deg,#ffd700,#ff9d00);color:#000}
+footer{margin-top:20px;font-size:13px;color:#999}
+footer b{color:var(--gold)}
+.menu-toggle{position:fixed;top:12px;right:12px;font-size:28px;color:var(--gold);cursor:pointer;z-index:2000}
+.popup-menu{position:fixed;top:0;right:-250px;width:250px;height:100%;background:rgba(20,20,20,0.95);
+  border-left:2px solid var(--gold);display:flex;flex-direction:column;justify-content:center;
+  transition:.4s;z-index:1500}
+.popup-menu.active{right:0}
+.popup-menu a{color:var(--gold);text-decoration:none;padding:12px 20px;border-bottom:1px solid rgba(255,215,0,.3)}
+.popup-menu a:hover{background:rgba(255,215,0,.1)}
 </style>
 </head>
-
 <body>
+<header>
+  <button id="langToggle">EN</button>
+  <button id="connectBtn">🔗 Connect Wallet</button>
+  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+</header>
 
-<!-- โลโก้ฝัง -->
-<img class="logo" src="data:image/png;base64,{{YOUR_GDSX_LOGO_BASE64}}" alt="GDSX Logo">
+<div id="logo"></div>
+<button id="refreshSmall">🔄 Refresh</button>
 
-<div class="menu-toggle" onclick="toggleMenu()">☰</div>
+<main>
+  <h1>🌟 GDSX FARM ULTRA++</h1>
+  <div class="subtitle">🌟 The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่</div>
+  <marquee scrollamount="3">Earn passive income by farming GDSX tokens — ระบบทองคำดิจิทัลแห่งยุคใหม่</marquee>
+
+  <div id="poolV2" class="card">
+    <div class="statgrid">
+      <div class="stat"><div class="label">Wallet</div><div id="addr" class="value">—</div></div>
+      <div class="stat"><div class="label">Total GDSX</div><div id="bal" class="value">—</div></div>
+      <div class="stat"><div class="label">Your Stake</div><div id="st2" class="value">—</div></div>
+      <div class="stat"><div class="label">Pending Reward</div><div id="rw2" class="value">—</div></div>
+    </div>
+    <input id="amt" placeholder="Enter GDSX amount">
+    <div>
+      <button id="dep" class="action btn">💰 Deposit</button>
+      <button id="wd" class="action btn">💎 Withdraw</button>
+    </div>
+    <div>
+      <button id="claim" class="action gold">🎁 Claim Reward</button>
+      <button id="buy" class="action btn"
+        onclick="window.open('https://pancakeswap.finance/swap?outputCurrency=0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496','_blank')">
+        💰 BUY GDSX
+      </button>
+    </div>
+    <footer>
+      Powered by <b>GDSX Finance</b> © 2025 | Follow us on 
+      <a href="https://www.facebook.com/profile.php?id=61575951242164" target="_blank" style="color:var(--gold)">Facebook</a>
+    </footer>
+  </div>
+</main>
 
 <div id="popupMenu" class="popup-menu">
   <a href="#farm">🌾 Farm</a>
@@ -201,90 +140,9 @@ footer {
   <a href="#community">💬 Community</a>
 </div>
 
-<header>
-  <h1>🌾 GDSX FARM ULTRA++</h1>
-  <p class="subtitle">Gold Digital System X — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
-</header>
-
-<section id="farm" class="panel">
-  <h2>💰 Your Farm</h2>
-  <div class="data">Wallet: <span id="wallet">-</span></div>
-  <div class="data">Your Stake: <span id="stake">100</span> GDSX</div>
-  <div class="data">Pending Reward: <span id="reward">0.85</span> GDSX</div>
-  <button onclick="connectWallet()">🔗 Connect Wallet</button>
-  <button onclick="deposit()">Deposit</button>
-  <button onclick="withdraw()">Withdraw</button>
-  <button onclick="claim()">Claim</button>
-  <button onclick="refresh()">🔄 Refresh</button>
-
-  <div class="admin" id="adminPanel">
-    <h3>⚙️ Admin Panel</h3>
-    <input type="number" id="rewardRate" placeholder="Reward Rate (Mock)">
-    <button onclick="setRewardRate()">Set Reward Rate</button>
-    <p>💰 Treasury Balance: <span id="treasuryBal">5000</span> GDSX</p>
-  </div>
-
-  <div class="lucky" id="lucky">
-    <h3>🎁 Lucky Draw Weekly</h3>
-    <p>จับรางวัลทุกวันอาทิตย์</p>
-    <p>เหลือเวลา: <span id="countdown">--:--:--</span></p>
-    <button id="drawBtn" onclick="drawLucky()">🎲 จับรางวัล</button>
-    <p id="luckyResult">ผู้โชคดี: -</p>
-  </div>
-</section>
-
-<footer>
-🌟 The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่ 🌟
-</footer>
-
 <script>
-// === Mock Data Mode ===
-let provider, signer, account;
-
-async function connectWallet() {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    account = await signer.getAddress();
-    document.getElementById("wallet").textContent = account;
-    alert("✅ Wallet connected!");
-  } else {
-    alert("⚠️ กรุณาติดตั้ง MetaMask ก่อน");
-  }
-}
-function deposit(){ alert("📥 Deposit (Mock Mode)"); }
-function withdraw(){ alert("📤 Withdraw (Mock Mode)"); }
-function claim(){ alert("🎁 Claim Reward (Mock Mode)"); }
-function refresh(){ location.reload(); }
-function setRewardRate(){
-  const val = document.getElementById("rewardRate").value;
-  alert("⚙️ Reward rate set to " + val + " (Mock)");
-}
-
-// === Lucky Draw ===
-function updateCountdown() {
-  const now = new Date();
-  const nextSun = new Date(now);
-  nextSun.setDate(now.getDate() + (7 - now.getDay()));
-  nextSun.setHours(0,0,0,0);
-  const diff = nextSun - now;
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff / 3600000) % 24);
-  const m = Math.floor((diff / 60000) % 60);
-  const s = Math.floor((diff / 1000) % 60);
-  document.getElementById("countdown").textContent = `${d}d ${h}h ${m}m ${s}s`;
-}
-setInterval(updateCountdown,1000);
-
-function drawLucky(){
-  const users=["0x1234...ABCD","0x9F8a...E56C","0xAaa1...BbC3"];
-  const winner=users[Math.floor(Math.random()*users.length)];
-  document.getElementById("luckyResult").textContent="🎉 ผู้โชคดี: "+winner;
-}
-
-// === Popup Menu ===
-function toggleMenu(){document.getElementById("popupMenu").classList.toggle("active");}
+function toggleMenu(){document.getElementById('popupMenu').classList.toggle('active');}
+function refresh(){location.reload();}
 </script>
 </body>
 </html>

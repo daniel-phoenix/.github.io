@@ -9,17 +9,23 @@
 
 <style>
 :root{--gold:#ffd700;--neon:#00ffd5;--space1:#0ff;--space2:#ff00ff;--space3:#00b3ff}
-body{background:radial-gradient(circle at top,#000 40%,#111 100%);color:#fff;font-family:"Poppins","Noto Sans Thai",sans-serif;text-align:center;overflow-x:hidden;min-height:100vh}
+body{background:radial-gradient(circle at top,#000 40%,#111 100%);color:#fff;
+  font-family:"Poppins","Noto Sans Thai",sans-serif;text-align:center;overflow-x:hidden;min-height:100vh}
 
 /* Header */
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:linear-gradient(90deg,#111,#1a1a1a,#111);border-bottom:2px solid var(--gold)}
-.lang-btn{background:#111;border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:5px 10px;font-weight:600;cursor:pointer}
-.connect-btn{background:linear-gradient(90deg,#ffb300,#ffcc33);border:none;border-radius:10px;padding:7px 14px;color:#111;font-weight:700;cursor:pointer;box-shadow:0 0 10px rgba(255,215,0,.6)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
+  background:linear-gradient(90deg,#111,#1a1a1a,#111);border-bottom:2px solid var(--gold)}
+.lang-btn{background:#111;border:1px solid var(--gold);color:var(--gold);border-radius:6px;
+  padding:5px 10px;font-weight:600;cursor:pointer}
+.connect-btn{background:linear-gradient(90deg,#ffb300,#ffcc33);border:none;border-radius:10px;
+  padding:7px 14px;color:#111;font-weight:700;cursor:pointer;box-shadow:0 0 10px rgba(255,215,0,.6)}
 .connect-btn:hover{background:linear-gradient(90deg,#ffcc33,#ffe680)}
 .menu-toggle{font-size:26px;color:var(--gold);cursor:pointer}
 
 /* Popup Menu + overlay */
-.popup-menu{position:fixed;top:0;right:-260px;width:260px;height:100%;background:rgba(20,20,20,.96);border-left:2px solid var(--gold);display:flex;flex-direction:column;justify-content:center;transition:.35s;z-index:1501}
+.popup-menu{position:fixed;top:0;right:-260px;width:260px;height:100%;background:rgba(20,20,20,.96);
+  border-left:2px solid var(--gold);display:flex;flex-direction:column;justify-content:center;
+  transition:.35s;z-index:1501}
 .popup-menu.active{right:0}
 .popup-menu a{color:var(--gold);text-decoration:none;padding:14px 20px;border-bottom:1px solid rgba(255,215,0,.3)}
 .popup-menu a:hover{background:rgba(255,215,0,.1)}
@@ -27,39 +33,54 @@ body{background:radial-gradient(circle at top,#000 40%,#111 100%);color:#fff;fon
 .menu-overlay.active{display:block}
 
 /* Logo + title */
-.logo{width:90px;margin-top:30px;animation:spin 10s linear infinite;filter:drop-shadow(0 0 15px rgba(255,215,0,.8))}
+.logo{width:90px;margin-top:30px;animation:spin 10s linear infinite;
+  filter:drop-shadow(0 0 15px rgba(255,215,0,.8))}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 h1{font-size:1.8em;color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,.6);margin-top:10px}
 .subtitle{color:var(--neon);font-size:.9em;margin-bottom:15px}
 
 /* Panel */
-.panel{background:rgba(20,20,20,.85);border:1px solid var(--gold);border-radius:16px;padding:20px;margin:10px auto 100px;width:90%;max-width:420px;box-shadow:0 0 15px rgba(255,215,0,.3)}
+.panel{background:rgba(20,20,20,.85);border:1px solid var(--gold);border-radius:16px;padding:20px;
+  margin:10px auto 100px;width:90%;max-width:420px;box-shadow:0 0 15px rgba(255,215,0,.3)}
 .data-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .box{background:rgba(10,10,10,.7);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:8px;font-size:.9em}
 .box span{color:var(--gold);display:block;margin-top:4px;font-weight:600}
-input{width:100%;padding:10px;margin-top:8px;border-radius:10px;border:1px solid rgba(255,215,0,.3);text-align:center;background:#111;color:#fff}
+.load{opacity:.7}
+input{width:100%;padding:10px;margin-top:8px;border-radius:10px;border:1px solid rgba(255,215,0,.3);
+  text-align:center;background:#111;color:#fff}
 .btn-row{margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-button.action{background:linear-gradient(90deg,#00ffd5,#00b3a1);border:none;color:#111;font-weight:700;border-radius:10px;padding:10px 18px;cursor:pointer;transition:.25s}
+button.action{background:linear-gradient(90deg,#00ffd5,#00b3a1);border:none;color:#111;font-weight:700;
+  border-radius:10px;padding:10px 18px;cursor:pointer;transition:.25s}
 button.action:hover{opacity:.85}
 
 /* Claim sci-fi glow */
-button.claim{position:relative;background:linear-gradient(90deg,#ffb300,#ffcc33);color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;overflow:hidden;box-shadow:0 0 20px rgba(255,215,0,.8);animation:claimPulse 2s ease-in-out infinite alternate}
+button.claim{position:relative;background:linear-gradient(90deg,#ffb300,#ffcc33);color:#111;font-weight:700;
+  border:none;border-radius:12px;padding:10px 20px;cursor:pointer;overflow:hidden;
+  box-shadow:0 0 20px rgba(255,215,0,.85);animation:claimPulse 2s ease-in-out infinite alternate}
 @keyframes claimPulse{from{box-shadow:0 0 12px rgba(255,215,0,.5)}to{box-shadow:0 0 30px rgba(255,255,140,1)}}
-button.claim::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,200,.55) 90deg,transparent 360deg);animation:rotateLight 3s linear infinite;z-index:0}
+button.claim::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(255,255,200,.55) 90deg,transparent 360deg);
+  animation:rotateLight 3s linear infinite;z-index:0}
 button.claim span{position:relative;z-index:1}
 @keyframes rotateLight{to{transform:rotate(360deg)}}
 
 /* BUY GDSX space gradient */
-button.buy{background:linear-gradient(270deg,var(--space1),var(--space2),var(--space3));background-size:600% 600%;color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,255,.9);animation:spaceGlow 4s linear infinite}
+button.buy{background:linear-gradient(270deg,var(--space1),var(--space2),var(--space3));background-size:600% 600%;
+  color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;
+  box-shadow:0 0 20px rgba(0,255,255,.9);animation:spaceGlow 4s linear infinite}
 @keyframes spaceGlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
 /* Footer marquee */
-footer{position:fixed;bottom:0;width:100%;background:#111;border-top:1px solid rgba(255,215,0,.3);overflow:hidden;height:30px}
-footer p{display:inline-block;white-space:nowrap;color:var(--gold);font-weight:600;font-size:.9em;animation:scrollText 18s linear infinite;text-shadow:0 0 6px var(--gold)}
+footer{position:fixed;bottom:0;width:100%;background:#111;border-top:1px solid rgba(255,215,0,.3);
+  overflow:hidden;height:30px}
+footer p{display:inline-block;white-space:nowrap;color:var(--gold);font-weight:600;font-size:.9em;
+  animation:scrollText 18s linear infinite;text-shadow:0 0 6px var(--gold)}
 @keyframes scrollText{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
 
 /* Toast */
-.toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid var(--gold);color:#fff;padding:8px 14px;border-radius:10px;box-shadow:0 0 12px rgba(255,215,0,.35);z-index:1600;display:none}
+.toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:rgba(20,20,20,.95);
+  border:1px solid var(--gold);color:#fff;padding:8px 14px;border-radius:10px;box-shadow:0 0 12px rgba(255,215,0,.35);
+  z-index:1600;display:none}
 .toast.show{display:block}
 </style>
 </head>
@@ -67,18 +88,18 @@ footer p{display:inline-block;white-space:nowrap;color:var(--gold);font-weight:6
 <body>
   <!-- Topbar -->
   <div class="topbar">
-    <button class="lang-btn" onclick="toggleLang()">EN</button>
-    <button class="connect-btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <button class="lang-btn" id="btnLang">EN</button>
+    <button class="connect-btn" id="connectBtn">Connect Wallet</button>
+    <div class="menu-toggle" id="btnMenu">☰</div>
   </div>
 
   <!-- Menu Overlay + Drawer -->
-  <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
+  <div id="menuOverlay" class="menu-overlay"></div>
   <div id="popupMenu" class="popup-menu">
-    <a href="#farm" onclick="toggleMenu()">🌾 Farm</a>
-    <a href="#treasury" onclick="toggleMenu()">💰 Treasury</a>
-    <a href="#whitepaper" onclick="toggleMenu()">📄 Whitepaper</a>
-    <a href="#community" onclick="toggleMenu()">💬 Community</a>
+    <a href="#farm"  >🌾 Farm</a>
+    <a href="#treasury">💰 Treasury</a>
+    <a href="#whitepaper">📄 Whitepaper</a>
+    <a href="#community">💬 Community</a>
   </div>
 
   <!-- Logo + Title -->
@@ -89,18 +110,18 @@ footer p{display:inline-block;white-space:nowrap;color:var(--gold);font-weight:6
   <!-- FARM PANEL -->
   <div class="panel" id="farm">
     <div class="data-box">
-      <div class="box">Wallet<span id="wallet">-</span></div>
-      <div class="box">Total GDSX<span id="treasuryBal">0</span></div>
-      <div class="box">Your Stake<span id="stake">0</span></div>
-      <div class="box">Pending Rewards<span id="reward">0</span></div>
+      <div class="box">Wallet<span id="wallet" class="load">—</span></div>
+      <div class="box">Total GDSX<span id="treasuryBal" class="load">Loading…</span></div>
+      <div class="box">Your Stake<span id="stake" class="load">Loading…</span></div>
+      <div class="box">Pending Rewards<span><span id="reward" class="load">Loading…</span><br><small id="rewardUsd">≈ — USD</small></span></div>
     </div>
 
     <input type="number" id="amount" placeholder="Enter amount GDSX">
     <div class="btn-row">
       <button class="action" id="btnDeposit">Deposit</button>
       <button class="action" id="btnWithdraw">Withdraw</button>
-      <button class="claim" id="btnClaim"><span>Claim</span></button>
-      <button class="buy" id="btnBuy">BUY GDSX</button>
+      <button class="claim"  id="btnClaim"><span>Claim</span></button>
+      <button class="buy"    id="btnBuy">BUY GDSX</button>
       <button class="action" id="btnRefresh">Refresh</button>
     </div>
   </div>
@@ -109,7 +130,7 @@ footer p{display:inline-block;white-space:nowrap;color:var(--gold);font-weight:6
   <div id="toast" class="toast"></div>
 
 <script>
-/* ====== Contracts ====== */
+/* ====== Contracts & Const ====== */
 const TOKEN   = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
 const STAKING = "0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
 const TREASURY= "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
@@ -124,13 +145,12 @@ const abiStaking = [
   "function deposit(uint256 amount) public",
   "function withdraw(uint256 amount) public",
   "function claim() public",
-  "function userInfo(address) view returns(uint256 amount,uint256 rewardDebt)",
-  "function pendingReward(address) view returns(uint256)"
+  "function users(address) view returns (uint256 amount, uint256 rewardDebt)",
+  "function pendingReward(address userAddr) view returns (uint256)"
 ];
 
-let provider, signer, account, token, staking, decimals;
+let provider, signer, account, token, staking, decimals, priceUSD = null;
 const $ = (id)=>document.getElementById(id);
-
 function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
 
 /* ====== Menu toggle (ไป-กลับ) ====== */
@@ -138,7 +158,12 @@ function toggleMenu(){
   $("popupMenu").classList.toggle("active");
   $("menuOverlay").classList.toggle("active");
 }
-function toggleLang(){ const b=document.querySelector(".lang-btn"); b.textContent=b.textContent==="EN"?"TH":"EN"; }
+
+/* ====== Lang button ====== */
+function toggleLang(){
+  const b = $("btnLang");
+  b.textContent = (b.textContent==="EN")?"TH":"EN";
+}
 
 /* ====== Chain guard ====== */
 async function ensureBSC(){
@@ -148,7 +173,6 @@ async function ensureBSC(){
       await window.ethereum.request({ method:"wallet_switchEthereumChain", params:[{ chainId:BSC_MAINNET }] });
       showToast("Switched to BNB Smart Chain");
     }catch(e){
-      // ให้ผู้ใช้เพิ่มเชน ถ้าไม่มี
       if (e.code === 4902) {
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
@@ -160,11 +184,29 @@ async function ensureBSC(){
             blockExplorerUrls: ["https://bscscan.com"]
           }]
         });
-      } else {
-        throw e;
-      }
+      } else { throw e; }
     }
   }
+}
+
+/* ====== Price (auto) – PancakeSwap API ======
+   ใช้ endpoint v2; ถ้า fail จะลองสำรองอีกแบบหนึ่ง */
+async function fetchPriceUSD(){
+  try{
+    // main endpoint
+    let r = await fetch(`https://api.pancakeswap.info/api/v2/tokens/${TOKEN}`, {cache:"no-store"});
+    if(r.ok){
+      const j = await r.json();
+      if(j?.data?.price){ return parseFloat(j.data.price); }
+    }
+    // fallback (บางที path ต่างรุ่น)
+    r = await fetch("https://api.pancakeswap.info/api/v2/tokens", {cache:"no-store"});
+    if(r.ok){
+      const j = await r.json();
+      if(j?.data?.[TOKEN]?.price){ return parseFloat(j.data[TOKEN].price); }
+    }
+  }catch(e){ console.warn("Price API failed", e); }
+  return null; // ให้หน้าเว็บโชว์ "≈ — USD"
 }
 
 /* ====== Connect ====== */
@@ -180,24 +222,43 @@ async function connectWallet(){
   staking = new ethers.Contract(STAKING, abiStaking, signer);
   decimals = await token.decimals();
   showToast("✅ Wallet connected");
-  await loadData();
+  await refreshAll();
 }
 
-/* ====== Data ====== */
+/* ====== Load data ====== */
 async function loadData(){
-  if(!signer) { showToast("Connect wallet first"); return; }
+  if(!signer){ showToast("Connect wallet first"); return; }
   try{
-    await ensureBSC();
-    const [info, pending, trBal] = await Promise.all([
-      staking.userInfo(account),
+    const [user, pending, trBal] = await Promise.all([
+      staking.users(account),
       staking.pendingReward(account),
       token.balanceOf(TREASURY)
     ]);
-    $("stake").textContent       = parseFloat(ethers.utils.formatUnits(info.amount, decimals)).toFixed(4);
-    $("reward").textContent      = parseFloat(ethers.utils.formatUnits(pending, decimals)).toFixed(4);
-    $("treasuryBal").textContent = parseFloat(ethers.utils.formatUnits(trBal, decimals)).toFixed(2);
-    showToast("🔄 Refreshed");
+    const stakeNum   = parseFloat(ethers.utils.formatUnits(user.amount, decimals));
+    const rewardNum  = parseFloat(ethers.utils.formatUnits(pending, decimals));
+    const treasuryNum= parseFloat(ethers.utils.formatUnits(trBal, decimals));
+
+    $("stake").textContent       = stakeNum.toFixed(4);
+    $("reward").textContent      = rewardNum.toFixed(4);
+    $("treasuryBal").textContent = treasuryNum.toFixed(2);
+
+    // USD
+    if(priceUSD!==null){
+      const usd = rewardNum * priceUSD;
+      $("rewardUsd").textContent = `≈ $${usd.toFixed(4)} USD`;
+    }else{
+      $("rewardUsd").textContent = "≈ — USD";
+    }
+    ["stake","reward","treasuryBal"].forEach(id => $(id).classList.remove("load"));
   }catch(err){ console.error(err); showToast("Load failed"); }
+}
+
+/* ====== Refresh all: price + data ====== */
+async function refreshAll(){
+  $("rewardUsd").textContent = "≈ — USD";
+  priceUSD = await fetchPriceUSD();
+  if(priceUSD!==null){ showToast("💲 Price updated"); }
+  await loadData();
 }
 
 /* ====== Helpers ====== */
@@ -221,7 +282,7 @@ async function deposit(){
     showToast("Depositing...");
     const r2 = await staking.deposit(amt); await r2.wait();
     showToast("✅ Deposit success");
-    await loadData();
+    await refreshAll();
   }catch(err){ console.error(err); showToast("Deposit failed"); }
   finally{ disableActions(false); }
 }
@@ -237,7 +298,7 @@ async function withdraw(){
     showToast("Withdrawing...");
     const r = await staking.withdraw(amt); await r.wait();
     showToast("📤 Withdraw success");
-    await loadData();
+    await refreshAll();
   }catch(err){ console.error(err); showToast("Withdraw failed"); }
   finally{ disableActions(false); }
 }
@@ -250,7 +311,7 @@ async function claim(){
     showToast("Claiming...");
     const r = await staking.claim(); await r.wait();
     showToast("🎁 Claim success");
-    await loadData();
+    await refreshAll();
   }catch(err){ console.error(err); showToast("Claim failed"); }
   finally{ disableActions(false); }
 }
@@ -259,13 +320,17 @@ function buyGDSX(){
   window.open("https://pancakeswap.finance/swap?outputCurrency=0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496","_blank");
 }
 
-/* ====== Bind buttons safely (บางครั้ง inline onclick โดน CSP บล็อก) ====== */
+/* ====== Bind listeners ====== */
 document.addEventListener("DOMContentLoaded", ()=>{
   $("btnDeposit").addEventListener("click", deposit);
   $("btnWithdraw").addEventListener("click", withdraw);
-  $("btnClaim").addEventListener("click", claim);
-  $("btnBuy").addEventListener("click", buyGDSX);
-  $("btnRefresh").addEventListener("click", loadData);
+  $("btnClaim").addEventListener("click",  claim);
+  $("btnBuy").addEventListener("click",    buyGDSX);
+  $("btnRefresh").addEventListener("click", refreshAll);
+  $("connectBtn").addEventListener("click", connectWallet);
+  $("btnMenu").addEventListener("click", toggleMenu);
+  $("menuOverlay").addEventListener("click", toggleMenu);
+  $("btnLang").addEventListener("click", toggleLang);
 });
 </script>
 </body>

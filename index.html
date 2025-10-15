@@ -6,6 +6,7 @@
 <title>🌾 GDSX FARM ULTRA++</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
 <style>
 :root { --gold:#ffd700; --neon:#00ffd5; }
 body {
@@ -83,7 +84,6 @@ footer p {
   display:none;z-index:1600;
 }
 .toast.show{display:block;}
-/* ปุ่มกลมเรืองแสงมุมขวาบน */
 .connect-btn {
   position:fixed;top:12px;right:15px;width:55px;height:55px;
   border-radius:50%;border:none;cursor:pointer;
@@ -114,11 +114,13 @@ footer p {
 .popup-menu a:hover{background:rgba(255,215,0,0.1);}
 </style>
 </head>
+
 <body>
 <img class="logo" src="https://daniel-phoenix.github.io/gdsx-logo.png" alt="GDSX Logo">
 <h1>🌾 GDSX FARM ULTRA++</h1>
 <p class="subtitle">The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
 
+<!-- เมนู -->
 <div class="menu-toggle" onclick="toggleMenu()">☰</div>
 <div class="popup-menu" id="popupMenu">
   <a href="#">🌾 Farm</a>
@@ -129,23 +131,25 @@ footer p {
   <a href="#">💬 Community</a>
 </div>
 
+<!-- ปุ่ม Connect + ภาษา -->
 <button class="connect-btn" onclick="connect()"></button>
-<button class="lang-btn" onclick="toggleLang()">EN</button>
+<button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
 
+<!-- กล่องข้อมูล -->
 <div class="panel">
   <div class="data-box">
     <div class="box">Wallet<span id="wallet">—</span></div>
-    <div class="box">Your Stake<span id="stake">0.0000</span></div>
-    <div class="box">Pending Rewards<span id="reward">0.0000</span><small id="rewardUsd">≈ — USD</small></div>
-    <div class="box">Treasury Balance<span id="treasuryBal">0.00</span></div>
+    <div class="box">Pending Rewards<span id="stake">0.0000</span></div>
+    <div class="box">Treasury Balance<span id="reward">0.0000</span><small id="rewardUsd">≈ — USD</small></div>
+    <div class="box">Your Stake<span id="treasuryBal">0.00</span></div>
   </div>
   <input type="number" id="amount" placeholder="Enter amount GDSX">
   <div>
-    <button onclick="deposit()">Deposit</button>
-    <button onclick="withdraw()">Withdraw</button>
-    <button class="claim" onclick="claim()">Claim</button>
-    <button class="buy" onclick="buyGdsx()">BUY GDSX</button>
-    <button onclick="refresh()">Refresh</button>
+    <button id="btnDeposit" onclick="deposit()">Deposit</button>
+    <button id="btnWithdraw" onclick="withdraw()">Withdraw</button>
+    <button class="claim" id="btnClaim" onclick="claim()">Claim</button>
+    <button class="buy" id="btnBuy" onclick="buyGdsx()">BUY GDSX</button>
+    <button id="btnRefresh" onclick="refresh()">Refresh</button>
   </div>
 </div>
 
@@ -172,21 +176,42 @@ const abiStaking=[
 
 const $=id=>document.getElementById(id);
 function showToast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);}
-function toggleMenu(){$("popupMenu").classList.toggle("active");}
-function buyGdsx(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
-function toggleLang(){
-lang=(lang==="en")?"th":"en";
-const th={Wallet:"กระเป๋า",YourStake:"ยอดฝาก",PendingRewards:"รางวัลค้างรับ",TreasuryBalance:"ยอดคลัง",Deposit:"ฝาก",Withdraw:"ถอน",Claim:"รับรางวัล",Refresh:"รีเฟรช",};
-const en={Wallet:"Wallet",YourStake:"Your Stake",PendingRewards:"Pending Rewards",TreasuryBalance:"Treasury Balance",Deposit:"Deposit",Withdraw:"Withdraw",Claim:"Claim",Refresh:"Refresh",};
-const t=(lang==="en")?en:th;
-document.querySelectorAll(".box").forEach((b,i)=>{b.childNodes[0].textContent=Object.values(t)[i];});
-document.querySelectorAll("button")[1].textContent=t.Deposit;
-document.querySelectorAll("button")[2].textContent=t.Withdraw;
-document.querySelectorAll("button")[3].textContent=t.Claim;
-document.querySelectorAll("button")[5].textContent=t.Refresh;
-$("lang-btn").textContent=(lang==="en")?"EN":"TH";
+
+// 🟡 แก้เมนู toggle เปิด-ปิด
+function toggleMenu(){
+  const menu=$("popupMenu");
+  menu.classList.toggle("active");
+  document.addEventListener("click",e=>{
+    if(!menu.contains(e.target) && !e.target.closest(".menu-toggle")) menu.classList.remove("active");
+  });
 }
 
+// 🌐 แปลภาษา
+function toggleLang(){
+  lang=(lang==="en")?"th":"en";
+  const en={
+    Wallet:"Wallet",PendingRewards:"Pending Rewards",TreasuryBalance:"Treasury Balance",YourStake:"Your Stake",
+    Deposit:"Deposit",Withdraw:"Withdraw",Claim:"Claim",Buy:"BUY GDSX",Refresh:"Refresh"
+  };
+  const th={
+    Wallet:"กระเป๋า",PendingRewards:"รางวัลค้างรับ",TreasuryBalance:"ยอดคลัง",YourStake:"ยอดฝาก",
+    Deposit:"ฝาก",Withdraw:"ถอน",Claim:"รับรางวัล",Buy:"ซื้อ GDSX",Refresh:"รีเฟรช"
+  };
+  const t=(lang==="en")?en:th;
+  const b=document.querySelectorAll(".box");
+  b[0].childNodes[0].textContent=t.Wallet;
+  b[1].childNodes[0].textContent=t.PendingRewards;
+  b[2].childNodes[0].textContent=t.TreasuryBalance;
+  b[3].childNodes[0].textContent=t.YourStake;
+  $("btnDeposit").textContent=t.Deposit;
+  $("btnWithdraw").textContent=t.Withdraw;
+  $("btnClaim").textContent=t.Claim;
+  $("btnBuy").textContent=t.Buy;
+  $("btnRefresh").textContent=t.Refresh;
+  $("lang-btn").textContent=(lang==="en")?"EN":"TH";
+}
+
+// 🪙 เชื่อมต่อ MetaMask
 async function connect(){
   try{
     if(!window.ethereum){alert("Please install MetaMask!");return;}
@@ -221,11 +246,13 @@ async function refresh(){
   const stake=parseFloat(ethers.utils.formatUnits(u.amount,decimals));
   const rew=parseFloat(ethers.utils.formatUnits(pending,decimals));
   const tre=parseFloat(ethers.utils.formatUnits(trBal,decimals));
-  $("stake").textContent=stake.toFixed(4);
-  $("reward").textContent=rew.toFixed(4);
-  $("treasuryBal").textContent=tre.toFixed(2);
+  $("stake").textContent=rew.toFixed(4);
+  $("reward").textContent=tre.toFixed(4);
+  $("treasuryBal").textContent=stake.toFixed(4);
   $("rewardUsd").textContent=`≈ $${(rew*price).toFixed(4)} USD`;
 }
+
+function buyGdsx(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
 
 async function deposit(){
   if(!signer)return connect();

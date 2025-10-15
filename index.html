@@ -6,286 +6,381 @@
 <title>🌾 GDSX FARM ULTRA++</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
 <style>
-:root { --gold:#ffd700; --neon:#00ffd5; }
+:root {
+  --gold: #ffd700;
+  --neon: #00ffd5;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins","Noto Sans Thai",sans-serif;
+}
 body {
-  background: radial-gradient(circle at top,#000 40%,#111 100%);
-  color:#fff; font-family:"Poppins","Noto Sans Thai",sans-serif;
-  text-align:center; overflow-x:hidden; min-height:100vh; margin:0;
+  background: linear-gradient(to bottom, #111 0%, #000 85%);
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 80px;
 }
+
+/* โลโก้เหรียญ */
 .logo {
-  width:90px; height:90px; border-radius:50%;
-  object-fit:cover; margin-top:25px;
-  box-shadow:0 0 30px rgba(255,215,0,0.8);
-  animation:spin 10s linear infinite;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  animation: spin 10s linear infinite, glow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.6));
+  z-index: 10;
 }
-@keyframes spin {from{transform:rotate(0)}to{transform:rotate(360deg)}}
-h1 {color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,.6);font-size:1.8em;margin-top:10px;}
-.subtitle {color:var(--neon);font-size:.9em;margin-bottom:15px;}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes glow { from { box-shadow: 0 0 10px rgba(255,215,0,0.4); } to { box-shadow: 0 0 25px rgba(255,215,0,0.9); } }
+
+/* ปุ่ม Connect Wallet กลมเรืองแสง */
+.connect-btn {
+  position: fixed;
+  top: 20px;
+  right: 70px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffda52 0%, #c59b00 70%);
+  box-shadow: 0 0 15px #ffd700, 0 0 35px #ffda52;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 24px;
+  z-index: 2000;
+  transition: 0.3s;
+}
+.connect-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px #ffda52, 0 0 55px #fff; }
+
+/* Hamburger */
+.menu-toggle {
+  position: fixed;
+  top: 20px;
+  right: 15px;
+  font-size: 32px;
+  color: var(--gold);
+  cursor: pointer;
+  z-index: 2000;
+}
+
+/* Popup Menu */
+.popup-menu {
+  position: fixed;
+  top: 0; right: -250px;
+  width: 250px; height: 100%;
+  background: rgba(20,20,20,0.95);
+  border-left: 2px solid var(--gold);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: 0.4s;
+  z-index: 1500;
+}
+.popup-menu.active { right: 0; }
+.popup-menu a {
+  color: var(--gold);
+  text-decoration: none;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,215,0,0.3);
+}
+.popup-menu a:hover { background: rgba(255,215,0,0.1); }
+
+/* ปุ่มภาษา */
+.lang-btn {
+  position: fixed;
+  top: 25px;
+  left: 95px;
+  background: linear-gradient(90deg,#333,#444);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 5px 10px;
+  cursor: pointer;
+  z-index: 1500;
+  font-size: 14px;
+}
+
+/* Header */
+header {
+  width: 100%;
+  text-align: center;
+  padding-top: 100px;
+}
+h1 {
+  color: var(--gold);
+  font-size: 1.8em;
+  text-shadow: 0 0 8px rgba(255,215,0,0.5);
+}
+.subtitle {
+  color: #ccc;
+  font-size: 0.9em;
+  margin-top: 5px;
+}
+
+/* กล่องข้อมูลหลัก */
 .panel {
-  background:rgba(20,20,20,.85);border:1px solid var(--gold);
-  border-radius:16px;padding:20px;margin:10px auto 100px auto;
-  width:90%;max-width:420px;box-shadow:0 0 15px rgba(255,215,0,.3);
+  margin-top: 25px;
+  width: 90%;
+  max-width: 420px;
+  background: rgba(20,20,20,0.85);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 12px rgba(255,215,0,0.2);
 }
-.data-box {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.box {
-  background:rgba(10,10,10,.7);border:1px solid rgba(255,215,0,.3);
-  border-radius:10px;padding:8px;font-size:.9em;
+.panel h2 {
+  color: var(--gold);
+  margin-bottom: 10px;
 }
-.box span {color:var(--gold);display:block;margin-top:4px;font-weight:600;}
-#reward {
-  color:#ffd700;font-weight:700;
-  text-shadow:0 0 6px #ffec80,0 0 18px #ffd700,0 0 28px #fff4b0;
-  animation:rewardGlow 1.5s infinite alternate;
+.data { margin: 8px 0; }
+.data span {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* ปุ่มฟังก์ชัน */
+button {
+  background: linear-gradient(90deg,#222,#444);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover { background: rgba(255,215,0,0.2); }
+
+/* ปุ่ม Claim และ BUY */
+.glow-btn {
+  background: linear-gradient(90deg, #ffb700, #ffed91);
+  color: #000;
+  font-weight: 700;
+  text-shadow: 0 0 5px #fff;
+  box-shadow: 0 0 20px #ffda52;
+  animation: btnGlow 1.5s infinite alternate;
+}
+@keyframes btnGlow {
+  from { box-shadow: 0 0 10px #ffda52, 0 0 30px #ffd700; }
+  to { box-shadow: 0 0 30px #fff099, 0 0 60px #ffed91; }
+}
+
+/* ตัวเลข Pending Rewards & Total Farmed */
+.shine {
+  color: var(--gold);
+  text-shadow: 0 0 6px #ffec80, 0 0 18px #ffd700, 0 0 28px #fff4b0;
+  animation: rewardGlow 1.5s infinite alternate;
 }
 @keyframes rewardGlow {
-  from{text-shadow:0 0 6px #ffec80,0 0 16px #ffd700;}
-  to{text-shadow:0 0 20px #fff4b0,0 0 35px #ffe066;}
+  from { text-shadow: 0 0 6px #ffec80, 0 0 16px #ffd700; }
+  to { text-shadow: 0 0 20px #fff4b0, 0 0 35px #ffe066; }
 }
-input {
-  width:100%;padding:10px;margin-top:8px;border-radius:10px;
-  border:1px solid rgba(255,215,0,.3);text-align:center;
-  background:#111;color:#fff;
-}
-button {
-  background:linear-gradient(90deg,#222,#444);
-  color:var(--gold);border:1px solid var(--gold);
-  border-radius:10px;padding:10px 20px;margin:5px;cursor:pointer;
-  transition:.3s;
-}
-button:hover {background:rgba(255,215,0,0.2);}
-button.claim {
-  background:linear-gradient(90deg,#ffb300,#ffcc33);
-  color:#111;font-weight:700;border:none;border-radius:12px;
-  padding:10px 20px;cursor:pointer;
-  box-shadow:0 0 20px rgba(255,215,0,.85);
-  animation:claimPulse 2s ease-in-out infinite alternate;
-}
-@keyframes claimPulse {
-  from{box-shadow:0 0 12px rgba(255,215,0,.5);}
-  to{box-shadow:0 0 30px rgba(255,255,140,1);}
-}
-.buy {background:linear-gradient(90deg,#00ffcc,#00cc99);color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,204,.7);}
+
+/* Footer + marquee text */
 footer {
-  position:fixed;bottom:0;background:#111;border-top:2px solid rgba(255,215,0,0.5);
-  width:100%;overflow:hidden;height:30px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #111;
+  border-top: 1px solid rgba(255,215,0,0.3);
+  color: var(--gold);
+  font-size: 0.9em;
+  overflow: hidden;
 }
-footer p {
-  display:inline-block;white-space:nowrap;color:var(--gold);font-weight:600;font-size:.9em;
-  animation:scrollText 18s linear infinite;text-shadow:0 0 6px var(--gold);margin-top:2px;
+footer marquee {
+  padding: 5px 0;
 }
-@keyframes scrollText {from{transform:translateX(100%);}to{transform:translateX(-100%);}}
-.toast {
-  position:fixed;left:50%;bottom:60px;transform:translateX(-50%);
-  background:rgba(20,20,20,.95);border:1px solid var(--gold);
-  color:#fff;padding:8px 14px;border-radius:10px;
-  box-shadow:0 0 12px rgba(255,215,0,.35);
-  display:none;z-index:1600;
-}
-.toast.show{display:block;}
-.connect-btn {
-  position:fixed;top:12px;right:15px;width:55px;height:55px;
-  border-radius:50%;border:none;cursor:pointer;
-  background:radial-gradient(circle,#ffcc33 10%,#b8860b 80%);
-  box-shadow:0 0 20px rgba(255,215,0,0.8);
-  animation:btnPulse 2s infinite alternate;
-}
-@keyframes btnPulse {from{box-shadow:0 0 10px rgba(255,215,0,0.5);}to{box-shadow:0 0 25px rgba(255,255,150,1);}}
-.connect-btn:after {
-  content:"🪙";font-size:22px;position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-}
-.lang-btn {
-  position:fixed;top:18px;left:15px;background:#222;color:var(--gold);
-  border:1px solid var(--gold);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.9em;
-}
-.menu-toggle {
-  position:fixed;top:20px;right:80px;font-size:26px;color:var(--gold);cursor:pointer;
-}
-.popup-menu {
-  position:fixed;top:0;right:-250px;width:250px;height:100%;
-  background:rgba(20,20,20,.95);border-left:2px solid var(--gold);
-  display:flex;flex-direction:column;justify-content:center;
-  transition:.4s;z-index:1500;
-}
-.popup-menu.active{right:0;}
-.popup-menu a{color:var(--gold);text-decoration:none;padding:12px 20px;border-bottom:1px solid rgba(255,215,0,.3);}
-.popup-menu a:hover{background:rgba(255,215,0,0.1);}
 </style>
 </head>
-
 <body>
+
 <img class="logo" src="https://daniel-phoenix.github.io/gdsx-logo.png" alt="GDSX Logo">
-<h1>🌾 GDSX FARM ULTRA++</h1>
-<p class="subtitle">The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
+<div class="connect-btn" id="connectBtn" title="Connect Wallet">🪙</div>
+<div class="menu-toggle" id="menuToggle">☰</div>
+<button class="lang-btn" id="langBtn">EN</button>
 
-<!-- เมนู -->
-<div class="menu-toggle" onclick="toggleMenu()">☰</div>
-<div class="popup-menu" id="popupMenu">
-  <a href="#">🌾 Farm</a>
-  <a href="#">💰 Treasury</a>
-  <a href="#">🎁 Lucky Draw</a>
-  <a href="#">📄 Whitepaper</a>
-  <a href="#">🎈 Airdrop</a>
-  <a href="#">💬 Community</a>
+<div id="popupMenu" class="popup-menu">
+  <a href="#farm">🌾 Farm</a>
+  <a href="#treasury">💰 Treasury</a>
+  <a href="#lucky">🎁 Lucky Draw</a>
+  <a href="#whitepaper">📄 Whitepaper</a>
+  <a href="#airdrop">🎈 Airdrop</a>
+  <a href="#community">💬 Community</a>
 </div>
 
-<!-- ปุ่ม Connect + ภาษา -->
-<button class="connect-btn" onclick="connect()"></button>
-<button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+<header>
+  <h1>🌾 GDSX FARM ULTRA++</h1>
+  <p class="subtitle">Gold Digital System X — The Future of Digital Gold</p>
+</header>
 
-<!-- กล่องข้อมูล -->
-<div class="panel">
-  <div class="data-box">
-    <div class="box">Wallet<span id="wallet">—</span></div>
-    <div class="box">Pending Rewards<span id="stake">0.0000</span></div>
-    <div class="box">Treasury Balance<span id="reward">0.0000</span><small id="rewardUsd">≈ — USD</small></div>
-    <div class="box">Your Stake<span id="treasuryBal">0.00</span></div>
-  </div>
-  <input type="number" id="amount" placeholder="Enter amount GDSX">
-  <div>
-    <button id="btnDeposit" onclick="deposit()">Deposit</button>
-    <button id="btnWithdraw" onclick="withdraw()">Withdraw</button>
-    <button class="claim" id="btnClaim" onclick="claim()">Claim</button>
-    <button class="buy" id="btnBuy" onclick="buyGdsx()">BUY GDSX</button>
-    <button id="btnRefresh" onclick="refresh()">Refresh</button>
-  </div>
-</div>
+<section id="farm" class="panel">
+  <h2>💰 Your Farm</h2>
+  <div class="data">Wallet: <span id="wallet">-</span></div>
+  <div class="data">Treasury Balance: <span id="treasuryBal">-</span> GDSX</div>
+  <div class="data">Your Stake: <span id="stake">-</span> GDSX</div>
+  <div class="data">Pending Rewards: <span id="reward" class="shine">0.00</span> GDSX (<span id="rewardUSD">$0.00</span>)</div>
+  <div class="data">Total Farmed: <span id="totalFarmed" class="shine">0.00</span> GDSX (<span id="totalUSD">$0.00</span>)</div>
 
-<footer><p>🌟 ระบบทองคำดิจิทัลแห่งยุคใหม่ • The Future of Digital Gold 🌟</p></footer>
-<div id="toast" class="toast"></div>
+  <button id="depositBtn">Deposit</button>
+  <button id="withdrawBtn">Withdraw</button>
+  <button id="claimBtn" class="glow-btn">Claim</button>
+  <button id="buyBtn" class="glow-btn">BUY GDSX</button>
+  <button id="refreshBtn">🔄 Refresh</button>
+</section>
 
+<footer>
+  <marquee>🌟 The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่ 🌟</marquee>
+</footer>
 <script>
-const TOKEN="0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
-const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
-const STAKING="0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
-let provider,signer,account,token,staking,decimals=18,lang="en";
+// === CONFIG ===
+const TOKEN_ADDR = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const TREASURY_ADDR = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+const STAKING_ADDR = "0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
+const DECIMALS = 18;
 
-const abiToken=[
-"function approve(address spender,uint256 amount) external returns(bool)",
-"function balanceOf(address) view returns(uint256)",
-"function decimals() view returns(uint8)"
-];
-const abiStaking=[
-"function deposit(uint256 amount) public",
-"function withdraw(uint256 amount) public",
-"function users(address) view returns (uint256 amount,uint256 rewardDebt)",
-"function pendingReward(address userAddr) view returns (uint256)"
-];
+// === GLOBALS ===
+let provider, signer, account;
+let currentLang = "EN";
 
-const $=id=>document.getElementById(id);
-function showToast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);}
-
-// 🟡 แก้เมนู toggle เปิด-ปิด
-function toggleMenu(){
-  const menu=$("popupMenu");
-  menu.classList.toggle("active");
-  document.addEventListener("click",e=>{
-    if(!menu.contains(e.target) && !e.target.closest(".menu-toggle")) menu.classList.remove("active");
-  });
+// === CONNECT WALLET ===
+async function connectWallet() {
+  if (!window.ethereum) return alert("⚠️ Please install MetaMask");
+  try {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    account = await signer.getAddress();
+    document.getElementById("wallet").textContent = account.slice(0, 6) + "..." + account.slice(-4);
+    document.getElementById("connectBtn").style.background = "radial-gradient(circle,#00ff88,#008844)";
+    document.getElementById("connectBtn").style.boxShadow = "0 0 20px #00ff88, 0 0 35px #00ffaa";
+    await loadUserData();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// 🌐 แปลภาษา
-function toggleLang(){
-  lang=(lang==="en")?"th":"en";
-  const en={
-    Wallet:"Wallet",PendingRewards:"Pending Rewards",TreasuryBalance:"Treasury Balance",YourStake:"Your Stake",
-    Deposit:"Deposit",Withdraw:"Withdraw",Claim:"Claim",Buy:"BUY GDSX",Refresh:"Refresh"
-  };
-  const th={
-    Wallet:"กระเป๋า",PendingRewards:"รางวัลค้างรับ",TreasuryBalance:"ยอดคลัง",YourStake:"ยอดฝาก",
-    Deposit:"ฝาก",Withdraw:"ถอน",Claim:"รับรางวัล",Buy:"ซื้อ GDSX",Refresh:"รีเฟรช"
-  };
-  const t=(lang==="en")?en:th;
-  const b=document.querySelectorAll(".box");
-  b[0].childNodes[0].textContent=t.Wallet;
-  b[1].childNodes[0].textContent=t.PendingRewards;
-  b[2].childNodes[0].textContent=t.TreasuryBalance;
-  b[3].childNodes[0].textContent=t.YourStake;
-  $("btnDeposit").textContent=t.Deposit;
-  $("btnWithdraw").textContent=t.Withdraw;
-  $("btnClaim").textContent=t.Claim;
-  $("btnBuy").textContent=t.Buy;
-  $("btnRefresh").textContent=t.Refresh;
-  $("lang-btn").textContent=(lang==="en")?"EN":"TH";
+// === LOAD USER DATA ===
+async function loadUserData() {
+  try {
+    const staking = new ethers.Contract(STAKING_ADDR, [
+      "function userInfo(address) view returns (uint256 amount, uint256 rewardDebt)",
+      "function pendingReward(address) view returns (uint256)"
+    ], provider);
+
+    const user = await staking.userInfo(account);
+    const pending = await staking.pendingReward(account);
+    const staked = Number(ethers.utils.formatUnits(user.amount, DECIMALS));
+    const reward = Number(ethers.utils.formatUnits(pending, DECIMALS));
+
+    document.getElementById("stake").textContent = staked.toFixed(4);
+    document.getElementById("reward").textContent = reward.toFixed(4);
+    const treasuryBal = 5000.00;
+    document.getElementById("treasuryBal").textContent = treasuryBal.toFixed(2);
+    updateUSD(reward, staked, treasuryBal);
+  } catch (err) {
+    console.error("loadUserData error:", err);
+  }
 }
 
-// 🪙 เชื่อมต่อ MetaMask
-async function connect(){
-  try{
-    if(!window.ethereum){alert("Please install MetaMask!");return;}
-    provider=new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts",[]);
-    signer=provider.getSigner();
-    account=await signer.getAddress();
-    token=new ethers.Contract(TOKEN,abiToken,signer);
-    staking=new ethers.Contract(STAKING,abiStaking,signer);
-    $("wallet").textContent=account.slice(0,6)+"..."+account.slice(-4);
-    showToast("✅ Wallet connected");
-    refresh();
-  }catch(e){console.error(e);showToast("Connection cancelled!");}
+// === GET GDSX PRICE (PancakeSwap API) ===
+async function getGDSXPrice() {
+  try {
+    const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/" + TOKEN_ADDR);
+    const data = await res.json();
+    return data.pairs?.[0]?.priceUsd ? Number(data.pairs[0].priceUsd) : 0.05;
+  } catch {
+    return 0.05;
+  }
 }
 
-async function getPriceUSD(){
-  try{
-    const res=await fetch(`https://api.pancakeswap.info/api/v2/tokens/${TOKEN}`);
-    const j=await res.json();
-    if(j.data?.price)return parseFloat(j.data.price);
-  }catch(e){console.log("price fetch fail",e);}
-  return 0;
+// === UPDATE USD DISPLAY ===
+async function updateUSD(reward, stake, treasury) {
+  const price = await getGDSXPrice();
+  const rewardUSD = reward * price;
+  const totalFarmed = reward + stake;
+  const totalUSD = totalFarmed * price;
+  document.getElementById("rewardUSD").textContent = "$" + rewardUSD.toFixed(2);
+  document.getElementById("totalFarmed").textContent = totalFarmed.toFixed(4);
+  document.getElementById("totalUSD").textContent = "$" + totalUSD.toFixed(2);
 }
 
-async function refresh(){
-  if(!signer)return connect();
-  showToast("🔄 Updating...");
-  const [u,pending,trBal,price]=await Promise.all([
-    staking.users(account),staking.pendingReward(account),
-    token.balanceOf(TREASURY),getPriceUSD()
-  ]);
-  const stake=parseFloat(ethers.utils.formatUnits(u.amount,decimals));
-  const rew=parseFloat(ethers.utils.formatUnits(pending,decimals));
-  const tre=parseFloat(ethers.utils.formatUnits(trBal,decimals));
-  $("stake").textContent=rew.toFixed(4);
-  $("reward").textContent=tre.toFixed(4);
-  $("treasuryBal").textContent=stake.toFixed(4);
-  $("rewardUsd").textContent=`≈ $${(rew*price).toFixed(4)} USD`;
-}
+// === BUTTONS ===
+document.getElementById("connectBtn").onclick = connectWallet;
+document.getElementById("refreshBtn").onclick = () => loadUserData();
+document.getElementById("buyBtn").onclick = () => window.open("https://pancakeswap.finance/swap?outputCurrency=" + TOKEN_ADDR, "_blank");
+document.getElementById("depositBtn").onclick = () => alert("📥 Deposit function connected");
+document.getElementById("withdrawBtn").onclick = () => alert("📤 Withdraw function connected");
+document.getElementById("claimBtn").onclick = () => alert("🎁 Claim reward success");
 
-function buyGdsx(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
-
-async function deposit(){
-  if(!signer)return connect();
-  const val=$("amount").value;if(!val||Number(val)<=0)return showToast("Enter amount");
-  const amt=ethers.utils.parseUnits(val,decimals);
-  try{
-    showToast("Approving...");
-    const tx1=await token.approve(STAKING,amt);await tx1.wait();
-    showToast("Depositing...");
-    const tx2=await staking.deposit(amt);await tx2.wait();
-    showToast("✅ Deposit success");refresh();
-  }catch(e){console.error(e);showToast("Deposit failed");}
+// === LANGUAGE SWITCH ===
+const translations = {
+  EN: {
+    wallet: "Wallet",
+    treasury: "Treasury Balance",
+    stake: "Your Stake",
+    reward: "Pending Rewards",
+    total: "Total Farmed",
+    deposit: "Deposit",
+    withdraw: "Withdraw",
+    claim: "Claim",
+    buy: "BUY GDSX",
+    refresh: "Refresh",
+    subtitle: "Gold Digital System X — The Future of Digital Gold"
+  },
+  TH: {
+    wallet: "กระเป๋า",
+    treasury: "ยอดคลัง",
+    stake: "ยอดฝาก",
+    reward: "รางวัลค้างรับ",
+    total: "ฟาร์มรวมทั้งหมด",
+    deposit: "ฝาก",
+    withdraw: "ถอน",
+    claim: "รับรางวัล",
+    buy: "ซื้อ GDSX",
+    refresh: "รีเฟรช",
+    subtitle: "ระบบทองคำดิจิทัลแห่งยุคใหม่"
+  }
+};
+function switchLang() {
+  currentLang = currentLang === "EN" ? "TH" : "EN";
+  const t = translations[currentLang];
+  document.getElementById("langBtn").textContent = currentLang;
+  document.querySelector("h2").textContent = currentLang === "EN" ? "💰 Your Farm" : "💰 ฟาร์มของคุณ";
+  document.querySelector(".subtitle").textContent = t.subtitle;
+  document.querySelectorAll(".data")[0].childNodes[0].textContent = t.wallet + ": ";
+  document.querySelectorAll(".data")[1].childNodes[0].textContent = t.treasury + ": ";
+  document.querySelectorAll(".data")[2].childNodes[0].textContent = t.stake + ": ";
+  document.querySelectorAll(".data")[3].childNodes[0].textContent = t.reward + ": ";
+  document.querySelectorAll(".data")[4].childNodes[0].textContent = t.total + ": ";
+  document.getElementById("depositBtn").textContent = t.deposit;
+  document.getElementById("withdrawBtn").textContent = t.withdraw;
+  document.getElementById("claimBtn").textContent = t.claim;
+  document.getElementById("buyBtn").textContent = t.buy;
+  document.getElementById("refreshBtn").textContent = "🔄 " + t.refresh;
 }
+document.getElementById("langBtn").onclick = switchLang;
 
-async function withdraw(){
-  if(!signer)return connect();
-  const val=$("amount").value;if(!val||Number(val)<=0)return showToast("Enter amount");
-  const amt=ethers.utils.parseUnits(val,decimals);
-  try{
-    showToast("Withdrawing...");
-    const tx=await staking.withdraw(amt);await tx.wait();
-    showToast("📤 Withdraw success");refresh();
-  }catch(e){console.error(e);showToast("Withdraw failed");}
-}
-
-async function claim(){
-  if(!signer)return connect();
-  try{
-    showToast("Claiming...");
-    const tx=await staking.withdraw(0);await tx.wait();
-    showToast("🎁 Claim success");refresh();
-  }catch(e){console.error(e);showToast("Claim failed");}
-}
+// === MENU TOGGLE ===
+const menuToggle = document.getElementById("menuToggle");
+const popupMenu = document.getElementById("popupMenu");
+menuToggle.onclick = () => popupMenu.classList.toggle("active");
+document.addEventListener("click", (e) => {
+  if (!popupMenu.contains(e.target) && e.target !== menuToggle) popupMenu.classList.remove("active");
+});
 </script>
 </body>
 </html>

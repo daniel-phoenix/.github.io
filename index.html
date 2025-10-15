@@ -7,169 +7,95 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
-:root {
-  --gold: #ffd700;
-  --neon: #00ffd5;
-}
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Poppins","Noto Sans Thai",sans-serif;
-}
+:root { --gold: #ffd700; --neon: #00ffd5; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins","Noto Sans Thai",sans-serif; }
 body {
   background: linear-gradient(to bottom, #111 0%, #000 85%);
-  color: white;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding-bottom: 80px;
+  color: white; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 100vh; overflow-x: hidden; padding-bottom: 80px;
 }
 
-/* โลโก้เหรียญ */
+/* โลโก้หมุน */
 .logo {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  animation: spin 10s linear infinite, glow 2s ease-in-out infinite alternate;
+  position: fixed; top: 15px; left: 15px; width: 70px; height: 70px;
+  border-radius: 50%; animation: spin 10s linear infinite, glow 2s ease-in-out infinite alternate;
   box-shadow: 0 0 20px rgba(255,215,0,0.5);
-  filter: drop-shadow(0 0 10px rgba(255,215,0,0.6));
-  z-index: 10;
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.6)); z-index: 10;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes glow { from { box-shadow: 0 0 10px rgba(255,215,0,0.4); } to { box-shadow: 0 0 25px rgba(255,215,0,0.9); } }
+@keyframes spin { from {transform:rotate(0deg);} to {transform:rotate(360deg);} }
+@keyframes glow { from {box-shadow:0 0 10px rgba(255,215,0,0.4);} to {box-shadow:0 0 25px rgba(255,215,0,0.9);} }
 
 /* ปุ่ม Connect Wallet กลมเรืองแสง */
 .connect-btn {
-  position: fixed;
-  top: 20px;
-  right: 70px;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffda52 0%, #c59b00 70%);
-  box-shadow: 0 0 15px #ffd700, 0 0 35px #ffda52;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  font-size: 24px;
-  z-index: 2000;
-  transition: 0.3s;
+  position: fixed; top: 20px; right: 70px; width: 55px; height: 55px;
+  border-radius: 50%; background: radial-gradient(circle,#ffda52 0%,#c59b00 70%);
+  box-shadow: 0 0 15px #ffd700, 0 0 35px #ffda52; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #000; font-size: 24px; z-index: 2000; transition: 0.3s;
 }
 .connect-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px #ffda52, 0 0 55px #fff; }
 
 /* Hamburger */
 .menu-toggle {
-  position: fixed;
-  top: 20px;
-  right: 15px;
-  font-size: 32px;
-  color: var(--gold);
-  cursor: pointer;
-  z-index: 2000;
+  position: fixed; top: 20px; right: 15px; font-size: 32px;
+  color: var(--gold); cursor: pointer; z-index: 2000;
 }
 
 /* Popup Menu */
 .popup-menu {
-  position: fixed;
-  top: 0; right: -250px;
+  position: fixed; top: 0; right: -250px;
   width: 250px; height: 100%;
   background: rgba(20,20,20,0.95);
   border-left: 2px solid var(--gold);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transition: 0.4s;
-  z-index: 1500;
+  display: flex; flex-direction: column; justify-content: center;
+  transition: 0.4s; z-index: 1500;
 }
 .popup-menu.active { right: 0; }
 .popup-menu a {
-  color: var(--gold);
-  text-decoration: none;
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(255,215,0,0.3);
+  color: var(--gold); text-decoration: none;
+  padding: 12px 20px; border-bottom: 1px solid rgba(255,215,0,0.3);
 }
 .popup-menu a:hover { background: rgba(255,215,0,0.1); }
 
 /* ปุ่มภาษา */
 .lang-btn {
-  position: fixed;
-  top: 25px;
-  left: 95px;
+  position: fixed; top: 25px; left: 95px;
   background: linear-gradient(90deg,#333,#444);
-  color: var(--gold);
-  border: 1px solid var(--gold);
-  border-radius: 12px;
-  padding: 5px 10px;
-  cursor: pointer;
-  z-index: 1500;
-  font-size: 14px;
+  color: var(--gold); border: 1px solid var(--gold);
+  border-radius: 12px; padding: 5px 10px; cursor: pointer;
+  z-index: 1500; font-size: 14px;
 }
 
 /* Header */
-header {
-  width: 100%;
-  text-align: center;
-  padding-top: 100px;
-}
-h1 {
-  color: var(--gold);
-  font-size: 1.8em;
-  text-shadow: 0 0 8px rgba(255,215,0,0.5);
-}
-.subtitle {
-  color: #ccc;
-  font-size: 0.9em;
-  margin-top: 5px;
-}
+header { width: 100%; text-align: center; padding-top: 100px; }
+h1 { color: var(--gold); font-size: 1.8em; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+.subtitle { color: #ccc; font-size: 0.9em; margin-top: 5px; }
 
 /* กล่องข้อมูลหลัก */
 .panel {
-  margin-top: 25px;
-  width: 90%;
-  max-width: 420px;
+  margin-top: 25px; width: 90%; max-width: 420px;
   background: rgba(20,20,20,0.85);
-  border: 1px solid var(--gold);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 12px rgba(255,215,0,0.2);
+  border: 1px solid var(--gold); border-radius: 20px;
+  padding: 20px; box-shadow: 0 0 12px rgba(255,215,0,0.2);
 }
-.panel h2 {
-  color: var(--gold);
-  margin-bottom: 10px;
-}
+.panel h2 { color: var(--gold); margin-bottom: 10px; }
 .data { margin: 8px 0; }
-.data span {
-  color: var(--gold);
-  font-weight: 600;
-}
+.data span { color: var(--gold); font-weight: 600; }
 
 /* ปุ่มฟังก์ชัน */
 button {
   background: linear-gradient(90deg,#222,#444);
-  color: var(--gold);
-  border: 1px solid var(--gold);
-  border-radius: 10px;
-  padding: 10px 20px;
-  margin: 5px;
-  cursor: pointer;
-  transition: 0.3s;
+  color: var(--gold); border: 1px solid var(--gold);
+  border-radius: 10px; padding: 10px 20px;
+  margin: 5px; cursor: pointer; transition: 0.3s;
 }
 button:hover { background: rgba(255,215,0,0.2); }
 
 /* ปุ่ม Claim และ BUY */
 .glow-btn {
-  background: linear-gradient(90deg, #ffb700, #ffed91);
-  color: #000;
-  font-weight: 700;
+  background: linear-gradient(90deg,#ffb700,#ffed91);
+  color: #000; font-weight: 700;
   text-shadow: 0 0 5px #fff;
   box-shadow: 0 0 20px #ffda52;
   animation: btnGlow 1.5s infinite alternate;
@@ -179,7 +105,7 @@ button:hover { background: rgba(255,215,0,0.2); }
   to { box-shadow: 0 0 30px #fff099, 0 0 60px #ffed91; }
 }
 
-/* ตัวเลข Pending Rewards & Total Farmed */
+/* ตัวเลขแสงทอง */
 .shine {
   color: var(--gold);
   text-shadow: 0 0 6px #ffec80, 0 0 18px #ffd700, 0 0 28px #fff4b0;
@@ -190,20 +116,13 @@ button:hover { background: rgba(255,215,0,0.2); }
   to { text-shadow: 0 0 20px #fff4b0, 0 0 35px #ffe066; }
 }
 
-/* Footer + marquee text */
+/* Footer marquee */
 footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #111;
-  border-top: 1px solid rgba(255,215,0,0.3);
-  color: var(--gold);
-  font-size: 0.9em;
-  overflow: hidden;
+  position: fixed; bottom: 0; width: 100%;
+  background: #111; border-top: 1px solid rgba(255,215,0,0.3);
+  color: var(--gold); font-size: 0.9em; overflow: hidden;
 }
-footer marquee {
-  padding: 5px 0;
-}
+footer marquee { padding: 5px 0; }
 </style>
 </head>
 <body>
@@ -230,9 +149,9 @@ footer marquee {
 <section id="farm" class="panel">
   <h2>💰 Your Farm</h2>
   <div class="data">Wallet: <span id="wallet">-</span></div>
+  <div class="data">Pending Rewards: <span id="reward" class="shine">0.00</span> GDSX (<span id="rewardUSD">$0.00</span>)</div>
   <div class="data">Treasury Balance: <span id="treasuryBal">-</span> GDSX</div>
   <div class="data">Your Stake: <span id="stake">-</span> GDSX</div>
-  <div class="data">Pending Rewards: <span id="reward" class="shine">0.00</span> GDSX (<span id="rewardUSD">$0.00</span>)</div>
   <div class="data">Total Farmed: <span id="totalFarmed" class="shine">0.00</span> GDSX (<span id="totalUSD">$0.00</span>)</div>
 
   <button id="depositBtn">Deposit</button>
@@ -245,18 +164,14 @@ footer marquee {
 <footer>
   <marquee>🌟 The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่ 🌟</marquee>
 </footer>
+
 <script>
-// === CONFIG ===
 const TOKEN_ADDR = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
-const TREASURY_ADDR = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
 const STAKING_ADDR = "0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
 const DECIMALS = 18;
+let provider, signer, account, currentLang = "EN";
 
-// === GLOBALS ===
-let provider, signer, account;
-let currentLang = "EN";
-
-// === CONNECT WALLET ===
+// Connect Wallet
 async function connectWallet() {
   if (!window.ethereum) return alert("⚠️ Please install MetaMask");
   try {
@@ -264,123 +179,80 @@ async function connectWallet() {
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     account = await signer.getAddress();
-    document.getElementById("wallet").textContent = account.slice(0, 6) + "..." + account.slice(-4);
-    document.getElementById("connectBtn").style.background = "radial-gradient(circle,#00ff88,#008844)";
-    document.getElementById("connectBtn").style.boxShadow = "0 0 20px #00ff88, 0 0 35px #00ffaa";
+    document.getElementById("wallet").textContent = account.slice(0,6)+"..."+account.slice(-4);
+    document.getElementById("connectBtn").style.background="radial-gradient(circle,#00ff88,#008844)";
     await loadUserData();
-  } catch (err) {
-    console.error(err);
-  }
+  } catch(e){console.error(e);}
 }
 
-// === LOAD USER DATA ===
 async function loadUserData() {
-  try {
-    const staking = new ethers.Contract(STAKING_ADDR, [
-      "function userInfo(address) view returns (uint256 amount, uint256 rewardDebt)",
-      "function pendingReward(address) view returns (uint256)"
-    ], provider);
-
-    const user = await staking.userInfo(account);
-    const pending = await staking.pendingReward(account);
-    const staked = Number(ethers.utils.formatUnits(user.amount, DECIMALS));
-    const reward = Number(ethers.utils.formatUnits(pending, DECIMALS));
-
-    document.getElementById("stake").textContent = staked.toFixed(4);
-    document.getElementById("reward").textContent = reward.toFixed(4);
-    const treasuryBal = 5000.00;
-    document.getElementById("treasuryBal").textContent = treasuryBal.toFixed(2);
-    updateUSD(reward, staked, treasuryBal);
-  } catch (err) {
-    console.error("loadUserData error:", err);
-  }
+  const staking = new ethers.Contract(STAKING_ADDR, [
+    "function userInfo(address) view returns (uint256 amount,uint256 rewardDebt)",
+    "function pendingReward(address) view returns (uint256)"
+  ], provider);
+  const user = await staking.userInfo(account);
+  const pending = await staking.pendingReward(account);
+  const stake = Number(ethers.utils.formatUnits(user.amount, DECIMALS));
+  const reward = Number(ethers.utils.formatUnits(pending, DECIMALS));
+  document.getElementById("stake").textContent = stake.toFixed(4);
+  document.getElementById("reward").textContent = reward.toFixed(4);
+  const treasuryBal = 5000.00;
+  document.getElementById("treasuryBal").textContent = treasuryBal.toFixed(2);
+  updateUSD(reward, stake);
 }
 
-// === GET GDSX PRICE (PancakeSwap API) ===
-async function getGDSXPrice() {
-  try {
-    const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/" + TOKEN_ADDR);
-    const data = await res.json();
-    return data.pairs?.[0]?.priceUsd ? Number(data.pairs[0].priceUsd) : 0.05;
-  } catch {
-    return 0.05;
-  }
+// Price fetch
+async function getGDSXPrice(){
+  try{
+    const res=await fetch("https://api.dexscreener.com/latest/dex/tokens/"+TOKEN_ADDR);
+    const data=await res.json();
+    return data.pairs?.[0]?.priceUsd?Number(data.pairs[0].priceUsd):0.05;
+  }catch{return 0.05;}
 }
 
-// === UPDATE USD DISPLAY ===
-async function updateUSD(reward, stake, treasury) {
-  const price = await getGDSXPrice();
-  const rewardUSD = reward * price;
-  const totalFarmed = reward + stake;
-  const totalUSD = totalFarmed * price;
-  document.getElementById("rewardUSD").textContent = "$" + rewardUSD.toFixed(2);
-  document.getElementById("totalFarmed").textContent = totalFarmed.toFixed(4);
-  document.getElementById("totalUSD").textContent = "$" + totalUSD.toFixed(2);
+// Update USD
+async function updateUSD(reward, stake){
+  const price=await getGDSXPrice();
+  const rewardUSD=reward*price;
+  const totalFarmed=reward+stake;
+  const totalUSD=totalFarmed*price;
+  document.getElementById("rewardUSD").textContent="$"+rewardUSD.toFixed(2);
+  document.getElementById("totalFarmed").textContent=totalFarmed.toFixed(4);
+  document.getElementById("totalUSD").textContent="$"+totalUSD.toFixed(2);
 }
 
-// === BUTTONS ===
-document.getElementById("connectBtn").onclick = connectWallet;
-document.getElementById("refreshBtn").onclick = () => loadUserData();
-document.getElementById("buyBtn").onclick = () => window.open("https://pancakeswap.finance/swap?outputCurrency=" + TOKEN_ADDR, "_blank");
-document.getElementById("depositBtn").onclick = () => alert("📥 Deposit function connected");
-document.getElementById("withdrawBtn").onclick = () => alert("📤 Withdraw function connected");
-document.getElementById("claimBtn").onclick = () => alert("🎁 Claim reward success");
+// Buttons
+document.getElementById("connectBtn").onclick=connectWallet;
+document.getElementById("refreshBtn").onclick=()=>loadUserData();
+document.getElementById("buyBtn").onclick=()=>window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN_ADDR,"_blank");
+document.getElementById("depositBtn").onclick=()=>alert("📥 Deposit Connected");
+document.getElementById("withdrawBtn").onclick=()=>alert("📤 Withdraw Connected");
+document.getElementById("claimBtn").onclick=()=>alert("🎁 Claim Success");
 
-// === LANGUAGE SWITCH ===
-const translations = {
-  EN: {
-    wallet: "Wallet",
-    treasury: "Treasury Balance",
-    stake: "Your Stake",
-    reward: "Pending Rewards",
-    total: "Total Farmed",
-    deposit: "Deposit",
-    withdraw: "Withdraw",
-    claim: "Claim",
-    buy: "BUY GDSX",
-    refresh: "Refresh",
-    subtitle: "Gold Digital System X — The Future of Digital Gold"
-  },
-  TH: {
-    wallet: "กระเป๋า",
-    treasury: "ยอดคลัง",
-    stake: "ยอดฝาก",
-    reward: "รางวัลค้างรับ",
-    total: "ฟาร์มรวมทั้งหมด",
-    deposit: "ฝาก",
-    withdraw: "ถอน",
-    claim: "รับรางวัล",
-    buy: "ซื้อ GDSX",
-    refresh: "รีเฟรช",
-    subtitle: "ระบบทองคำดิจิทัลแห่งยุคใหม่"
-  }
-};
-function switchLang() {
-  currentLang = currentLang === "EN" ? "TH" : "EN";
-  const t = translations[currentLang];
-  document.getElementById("langBtn").textContent = currentLang;
-  document.querySelector("h2").textContent = currentLang === "EN" ? "💰 Your Farm" : "💰 ฟาร์มของคุณ";
-  document.querySelector(".subtitle").textContent = t.subtitle;
-  document.querySelectorAll(".data")[0].childNodes[0].textContent = t.wallet + ": ";
-  document.querySelectorAll(".data")[1].childNodes[0].textContent = t.treasury + ": ";
-  document.querySelectorAll(".data")[2].childNodes[0].textContent = t.stake + ": ";
-  document.querySelectorAll(".data")[3].childNodes[0].textContent = t.reward + ": ";
-  document.querySelectorAll(".data")[4].childNodes[0].textContent = t.total + ": ";
-  document.getElementById("depositBtn").textContent = t.deposit;
-  document.getElementById("withdrawBtn").textContent = t.withdraw;
-  document.getElementById("claimBtn").textContent = t.claim;
-  document.getElementById("buyBtn").textContent = t.buy;
-  document.getElementById("refreshBtn").textContent = "🔄 " + t.refresh;
+// Language
+const tr={EN:{wallet:"Wallet",treasury:"Treasury Balance",stake:"Your Stake",reward:"Pending Rewards",total:"Total Farmed",deposit:"Deposit",withdraw:"Withdraw",claim:"Claim",buy:"BUY GDSX",refresh:"Refresh",subtitle:"Gold Digital System X — The Future of Digital Gold"},TH:{wallet:"กระเป๋า",treasury:"ยอดคลัง",stake:"ยอดฝาก",reward:"รางวัลค้างรับ",total:"ฟาร์มรวมทั้งหมด",deposit:"ฝาก",withdraw:"ถอน",claim:"รับรางวัล",buy:"ซื้อ GDSX",refresh:"รีเฟรช",subtitle:"ระบบทองคำดิจิทัลแห่งยุคใหม่"}};
+function switchLang(){
+  currentLang=currentLang==="EN"?"TH":"EN";
+  const t=tr[currentLang];
+  document.getElementById("langBtn").textContent=currentLang;
+  document.querySelector(".subtitle").textContent=t.subtitle;
+  document.querySelectorAll(".data")[0].childNodes[0].textContent=t.wallet+": ";
+  document.querySelectorAll(".data")[1].childNodes[0].textContent=t.reward+": ";
+  document.querySelectorAll(".data")[2].childNodes[0].textContent=t.treasury+": ";
+  document.querySelectorAll(".data")[3].childNodes[0].textContent=t.stake+": ";
+  document.querySelectorAll(".data")[4].childNodes[0].textContent=t.total+": ";
+  document.getElementById("depositBtn").textContent=t.deposit;
+  document.getElementById("withdrawBtn").textContent=t.withdraw;
+  document.getElementById("claimBtn").textContent=t.claim;
+  document.getElementById("buyBtn").textContent=t.buy;
+  document.getElementById("refreshBtn").textContent="🔄 "+t.refresh;
 }
-document.getElementById("langBtn").onclick = switchLang;
+document.getElementById("langBtn").onclick=switchLang;
 
-// === MENU TOGGLE ===
-const menuToggle = document.getElementById("menuToggle");
-const popupMenu = document.getElementById("popupMenu");
-menuToggle.onclick = () => popupMenu.classList.toggle("active");
-document.addEventListener("click", (e) => {
-  if (!popupMenu.contains(e.target) && e.target !== menuToggle) popupMenu.classList.remove("active");
-});
+// Menu
+const menuToggle=document.getElementById("menuToggle"),popupMenu=document.getElementById("popupMenu");
+menuToggle.onclick=()=>popupMenu.classList.toggle("active");
+document.addEventListener("click",(e)=>{if(!popupMenu.contains(e.target)&&e.target!==menuToggle)popupMenu.classList.remove("active");});
 </script>
 </body>
 </html>

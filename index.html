@@ -1,550 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌾 GDSX FARM ULTRA++</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <style>
-    :root {
-      --gold: #ffd700;
-      --neon: #00ffd5;
-      --space1: #0ff;
-      --space2: #ff00ff;
-      --space3: #00b3ff;
-    }
-    body {
-      background: radial-gradient(circle at top, #000 40%, #111 100%);
-      color: #fff;
-      font-family: "Poppins", "Noto Sans Thai", sans-serif;
-      text-align: center;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: linear-gradient(90deg, #111, #1a1a1a, #111);
-      border-bottom: 2px solid var(--gold);
-    }
-    .lang-btn {
-      background: #111;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .connect-btn {
-      background: linear-gradient(90deg, #ffb300, #ffcc33);
-      border: none;
-      border-radius: 10px;
-      padding: 7px 14px;
-      color: #111;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(255, 215, 0, .6);
-    }
-    .connect-btn:hover {
-      background: linear-gradient(90deg, #ffcc33, #ffe680);
-    }
-    .menu-toggle {
-      font-size: 26px;
-      color: var(--gold);
-      cursor: pointer;
-    }
-    .popup-menu {
-      position: fixed;
-      top: 0;
-      right: -260px;
-      width: 260px;
-      height: 100%;
-      background: rgba(20, 20, 20, .96);
-      border-left: 2px solid var(--gold);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      transition: .35s;
-      z-index: 1501;
-    }
-    .popup-menu.active { right: 0; }
-    .popup-menu a {
-      color: var(--gold);
-      text-decoration: none;
-      padding: 14px 20px;
-      border-bottom: 1px solid rgba(255,215,0,.3);
-    }
-    .popup-menu a:hover { background: rgba(255,215,0,.1); }
-    .menu-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      backdrop-filter: blur(1px);
-      display: none;
-      z-index: 1500;
-    }
-    .menu-overlay.active { display: block; }
-    .logo {
-      width: 90px;
-      margin-top: 30px;
-      animation: spin 10s linear infinite;
-      filter: drop-shadow(0 0 15px rgba(255, 215, 0, .8));
-    }
-    @keyframes spin {
-      from { transform: rotate(0); }
-      to { transform: rotate(360deg); }
-    }
-    h1 {
-      font-size: 1.8em;
-      color: var(--gold);
-      text-shadow: 0 0 10px rgba(255,215,0,.6);
-      margin-top: 10px;
-    }
-    .subtitle {
-      color: var(--neon);
-      font-size: .9em;
-      margin-bottom: 15px;
-    }
-    .panel {
-      background: rgba(20,20,20,.85);
-      border: 1px solid var(--gold);
-      border-radius: 16px;
-      padding: 20px;
-      margin: 10px auto 100px auto;
-      width: 90%;
-      max-width: 420px;
-      box-shadow: 0 0 15px rgba(255,215,0,.3);
-    }
-    .data-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .box {
-      background: rgba(10,10,10,.7);
-      border: 1px solid rgba(255,215,0,.3);
-      border-radius: 10px;
-      padding: 8px;
-      font-size: .9em;
-    }
-    .box span {
-      color: var(--gold);
-      display: block;
-      margin-top: 4px;
-      font-weight: 600;
-    }
-    .load {
-      opacity: .7;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,215,0,.3);
-      text-align: center;
-      background: #111;
-      color: #fff;
-    }
-    .btn-row {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-    }
-    button.action {
-      background: linear-gradient(90deg, #00ffd5, #00b3a1);
-      border: none;
-      color: #111;
-      font-weight: 700;
-      border-radius: 10px;
-      padding: 10px 18px;
-      cursor: pointer;
-      transition: .25s;
-    }
-    button.action:hover { opacity: .85; }
-    button.claim {
-      position: relative;
-      background: linear-gradient(90deg, #ffb300, #ffcc33);
-      color: #111;
-      font-weight: 700;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 20px;
-      cursor: pointer;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255,215,0,.85);
-      animation: claimPulse 2s ease-in-out infinite alternate;
-    }
-    @keyframes claimPulse {
-      from { box-shadow: 0 0 12px rgba(255,215,0,.5); }
-      to   { box-shadow: 0 0 30px rgba(255,255,140,1); }
-    }
-    button.claim::before {
-      content: "";
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,200,.55) 90deg, transparent 360deg);
-      animation: rotateLight 3s linear infinite;
-      z-index: 0;
-    }
-    button.claim span { position: relative; z-index: 1; }
-    @keyframes rotateLight { to { transform: rotate(360deg); } }
-    button.buy {
-      background: linear-gradient(270deg, var(--space1), var(--space2), var(--space3));
-      background-size: 600% 600%;
-      color: #111;
-      font-weight: 700;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 20px;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(0,255,255,.9);
-      animation: spaceGlow 4s linear infinite;
-    }
-    @keyframes spaceGlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    footer {
-      position: fixed;
-      bottom: 10px;  /* เลื่อนขึ้น 10px */
-      width: 100%;
-      background: #111;
-      border-top: 1px solid rgba(255,215,0,.3);
-      overflow: hidden;
-      height: 30px;
-    }
-    footer p {
-      display: inline-block;
-      white-space: nowrap;
-      color: var(--gold);
-      font-weight: 600;
-      font-size: .9em;
-      animation: scrollText 18s linear infinite;
-      text-shadow: 0 0 6px var(--gold);
-    }
-    @keyframes scrollText {
-      from { transform: translateX(100%); }
-      to   { transform: translateX(-100%); }
-    }
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 60px;
-      transform: translateX(-50%);
-      background: rgba(20,20,20,.95);
-      border: 1px solid var(--gold);
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(255,215,0,.35);
-      z-index: 1600;
-      display: none;
-    }
-    .toast.show { display: block; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 GDSX FARM ULTRA++</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+:root { --gold:#ffd700; --neon:#00ffd5; }
+body {
+  background: radial-gradient(circle at top,#000 40%,#111 100%);
+  color:#fff; font-family:"Poppins","Noto Sans Thai",sans-serif;
+  text-align:center; overflow-x:hidden; min-height:100vh; margin:0;
+}
+.logo {
+  width:90px; height:90px; border-radius:50%;
+  object-fit:cover; margin-top:25px;
+  box-shadow:0 0 30px rgba(255,215,0,0.8);
+  animation:spin 10s linear infinite;
+}
+@keyframes spin {from{transform:rotate(0)}to{transform:rotate(360deg)}}
+h1 {color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,.6);font-size:1.8em;margin-top:10px;}
+.subtitle {color:var(--neon);font-size:.9em;margin-bottom:15px;}
+.panel {
+  background:rgba(20,20,20,.85);border:1px solid var(--gold);
+  border-radius:16px;padding:20px;margin:10px auto 100px auto;
+  width:90%;max-width:420px;box-shadow:0 0 15px rgba(255,215,0,.3);
+}
+.data-box {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.box {
+  background:rgba(10,10,10,.7);border:1px solid rgba(255,215,0,.3);
+  border-radius:10px;padding:8px;font-size:.9em;
+}
+.box span {color:var(--gold);display:block;margin-top:4px;font-weight:600;}
+#reward {
+  color:#ffd700;font-weight:700;
+  text-shadow:0 0 6px #ffec80,0 0 18px #ffd700,0 0 28px #fff4b0;
+  animation:rewardGlow 1.5s infinite alternate;
+}
+@keyframes rewardGlow {
+  from{text-shadow:0 0 6px #ffec80,0 0 16px #ffd700;}
+  to{text-shadow:0 0 20px #fff4b0,0 0 35px #ffe066;}
+}
+input {
+  width:100%;padding:10px;margin-top:8px;border-radius:10px;
+  border:1px solid rgba(255,215,0,.3);text-align:center;
+  background:#111;color:#fff;
+}
+button {
+  background:linear-gradient(90deg,#222,#444);
+  color:var(--gold);border:1px solid var(--gold);
+  border-radius:10px;padding:10px 20px;margin:5px;cursor:pointer;
+  transition:.3s;
+}
+button:hover {background:rgba(255,215,0,0.2);}
+button.claim {
+  background:linear-gradient(90deg,#ffb300,#ffcc33);
+  color:#111;font-weight:700;border:none;border-radius:12px;
+  padding:10px 20px;cursor:pointer;
+  box-shadow:0 0 20px rgba(255,215,0,.85);
+  animation:claimPulse 2s ease-in-out infinite alternate;
+}
+@keyframes claimPulse {
+  from{box-shadow:0 0 12px rgba(255,215,0,.5);}
+  to{box-shadow:0 0 30px rgba(255,255,140,1);}
+}
+.buy {background:linear-gradient(90deg,#00ffcc,#00cc99);color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,204,.7);}
+footer {
+  position:fixed;bottom:0;background:#111;border-top:2px solid rgba(255,215,0,0.5);
+  width:100%;overflow:hidden;height:30px;
+}
+footer p {
+  display:inline-block;white-space:nowrap;color:var(--gold);font-weight:600;font-size:.9em;
+  animation:scrollText 18s linear infinite;text-shadow:0 0 6px var(--gold);margin-top:2px;
+}
+@keyframes scrollText {from{transform:translateX(100%);}to{transform:translateX(-100%);}}
+.toast {
+  position:fixed;left:50%;bottom:60px;transform:translateX(-50%);
+  background:rgba(20,20,20,.95);border:1px solid var(--gold);
+  color:#fff;padding:8px 14px;border-radius:10px;
+  box-shadow:0 0 12px rgba(255,215,0,.35);
+  display:none;z-index:1600;
+}
+.toast.show{display:block;}
+/* ปุ่มกลมเรืองแสงมุมขวาบน */
+.connect-btn {
+  position:fixed;top:12px;right:15px;width:55px;height:55px;
+  border-radius:50%;border:none;cursor:pointer;
+  background:radial-gradient(circle,#ffcc33 10%,#b8860b 80%);
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
+  animation:btnPulse 2s infinite alternate;
+}
+@keyframes btnPulse {from{box-shadow:0 0 10px rgba(255,215,0,0.5);}to{box-shadow:0 0 25px rgba(255,255,150,1);}}
+.connect-btn:after {
+  content:"🪙";font-size:22px;position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+}
+.lang-btn {
+  position:fixed;top:18px;left:15px;background:#222;color:var(--gold);
+  border:1px solid var(--gold);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.9em;
+}
+.menu-toggle {
+  position:fixed;top:20px;right:80px;font-size:26px;color:var(--gold);cursor:pointer;
+}
+.popup-menu {
+  position:fixed;top:0;right:-250px;width:250px;height:100%;
+  background:rgba(20,20,20,.95);border-left:2px solid var(--gold);
+  display:flex;flex-direction:column;justify-content:center;
+  transition:.4s;z-index:1500;
+}
+.popup-menu.active{right:0;}
+.popup-menu a{color:var(--gold);text-decoration:none;padding:12px 20px;border-bottom:1px solid rgba(255,215,0,.3);}
+.popup-menu a:hover{background:rgba(255,215,0,0.1);}
+</style>
 </head>
 <body>
-  <div class="topbar">
-    <button class="lang-btn" id="btnLang">EN</button>
-    <button class="connect-btn" id="connectBtn">Connect Wallet</button>
-    <div class="menu-toggle" id="btnMenu">☰</div>
+<img class="logo" src="https://daniel-phoenix.github.io/gdsx-logo.png" alt="GDSX Logo">
+<h1>🌾 GDSX FARM ULTRA++</h1>
+<p class="subtitle">The Future of Digital Gold — ระบบทองคำดิจิทัลแห่งยุคใหม่</p>
+
+<div class="menu-toggle" onclick="toggleMenu()">☰</div>
+<div class="popup-menu" id="popupMenu">
+  <a href="#">🌾 Farm</a>
+  <a href="#">💰 Treasury</a>
+  <a href="#">🎁 Lucky Draw</a>
+  <a href="#">📄 Whitepaper</a>
+  <a href="#">🎈 Airdrop</a>
+  <a href="#">💬 Community</a>
+</div>
+
+<button class="connect-btn" onclick="connect()"></button>
+<button class="lang-btn" onclick="toggleLang()">EN</button>
+
+<div class="panel">
+  <div class="data-box">
+    <div class="box">Wallet<span id="wallet">—</span></div>
+    <div class="box">Your Stake<span id="stake">0.0000</span></div>
+    <div class="box">Pending Rewards<span id="reward">0.0000</span><small id="rewardUsd">≈ — USD</small></div>
+    <div class="box">Treasury Balance<span id="treasuryBal">0.00</span></div>
   </div>
-
-  <div id="menuOverlay" class="menu-overlay"></div>
-  <div id="popupMenu" class="popup-menu">
-    <a href="#farm" onclick="toggleMenu()">🌾 Farm</a>
-    <a href="#treasury" onclick="toggleMenu()">💰 Treasury</a>
-    <a href="#whitepaper" onclick="toggleMenu()">📄 Whitepaper</a>
-    <a href="#community" onclick="toggleMenu()">💬 Community</a>
+  <input type="number" id="amount" placeholder="Enter amount GDSX">
+  <div>
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button>
+    <button class="claim" onclick="claim()">Claim</button>
+    <button class="buy" onclick="buyGdsx()">BUY GDSX</button>
+    <button onclick="refresh()">Refresh</button>
   </div>
+</div>
 
-  <img class="logo" src="https://daniel-phoenix.github.io/gdsx-logo.png" alt="GDSX Logo">
-  <h1 id="titleEN">🌾 GDSX FARM ULTRA++</h1>
-  <p class="subtitle" id="subtitleEN">The Future of Digital Gold — Digital Gold Ecosystem of the Future</p>
+<footer><p>🌟 ระบบทองคำดิจิทัลแห่งยุคใหม่ • The Future of Digital Gold 🌟</p></footer>
+<div id="toast" class="toast"></div>
 
-  <div class="panel" id="farm">
-    <div class="data-box">
-      <div class="box"><span id="labelWallet">Wallet</span><br><span id="wallet" class="load">—</span></div>
-      <div class="box"><span id="labelTotal">Total GDSX</span><br><span id="treasuryBal" class="load">Loading…</span></div>
-      <div class="box"><span id="labelStake">Your Stake</span><br><span id="stake" class="load">Loading…</span></div>
-      <div class="box"><span id="labelPending">Pending Rewards</span><br>
-        <span id="reward" class="load">Loading…</span><br>
-        <small id="rewardUsd">≈ — USD</small>
-      </div>
-    </div>
+<script>
+const TOKEN="0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+const STAKING="0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
+let provider,signer,account,token,staking,decimals=18,lang="en";
 
-    <input type="number" id="amount" placeholder="Enter amount GDSX">
-    <div class="btn-row">
-      <button class="action" id="btnDeposit">Deposit</button>
-      <button class="action" id="btnWithdraw">Withdraw</button>
-      <button class="claim" id="btnClaim"><span id="labelClaim">Claim</span></button>
-      <button class="buy" id="btnBuy"><span id="labelBuy">BUY GDSX</span></button>
-      <button class="action" id="btnRefresh">Refresh</button>
-    </div>
-  </div>
+const abiToken=[
+"function approve(address spender,uint256 amount) external returns(bool)",
+"function balanceOf(address) view returns(uint256)",
+"function decimals() view returns(uint8)"
+];
+const abiStaking=[
+"function deposit(uint256 amount) public",
+"function withdraw(uint256 amount) public",
+"function users(address) view returns (uint256 amount,uint256 rewardDebt)",
+"function pendingReward(address userAddr) view returns (uint256)"
+];
 
-  <footer><p>🌟 <span id="labelFooterTh">ระบบทองคำดิจิทัลแห่งยุคใหม่</span> • <span id="labelFooterEn">Digital Gold Ecosystem of the Future</span> 🌟</p></footer>
-  <div id="toast" class="toast"></div>
+const $=id=>document.getElementById(id);
+function showToast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);}
+function toggleMenu(){$("popupMenu").classList.toggle("active");}
+function buyGdsx(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
+function toggleLang(){
+lang=(lang==="en")?"th":"en";
+const th={Wallet:"กระเป๋า",YourStake:"ยอดฝาก",PendingRewards:"รางวัลค้างรับ",TreasuryBalance:"ยอดคลัง",Deposit:"ฝาก",Withdraw:"ถอน",Claim:"รับรางวัล",Refresh:"รีเฟรช",};
+const en={Wallet:"Wallet",YourStake:"Your Stake",PendingRewards:"Pending Rewards",TreasuryBalance:"Treasury Balance",Deposit:"Deposit",Withdraw:"Withdraw",Claim:"Claim",Refresh:"Refresh",};
+const t=(lang==="en")?en:th;
+document.querySelectorAll(".box").forEach((b,i)=>{b.childNodes[0].textContent=Object.values(t)[i];});
+document.querySelectorAll("button")[1].textContent=t.Deposit;
+document.querySelectorAll("button")[2].textContent=t.Withdraw;
+document.querySelectorAll("button")[3].textContent=t.Claim;
+document.querySelectorAll("button")[5].textContent=t.Refresh;
+$("lang-btn").textContent=(lang==="en")?"EN":"TH";
+}
 
-  <script>
-    const TOKEN = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
-    const STAKING = "0xEc9913d971e43f5b4a0d260381e60595DCb7268e";
-    const TREASURY = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
-    const BSC_MAINNET = "0x38";
+async function connect(){
+  try{
+    if(!window.ethereum){alert("Please install MetaMask!");return;}
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner();
+    account=await signer.getAddress();
+    token=new ethers.Contract(TOKEN,abiToken,signer);
+    staking=new ethers.Contract(STAKING,abiStaking,signer);
+    $("wallet").textContent=account.slice(0,6)+"..."+account.slice(-4);
+    showToast("✅ Wallet connected");
+    refresh();
+  }catch(e){console.error(e);showToast("Connection cancelled!");}
+}
 
-    const abiToken = [
-      "function approve(address spender,uint256 amount) external returns(bool)",
-      "function balanceOf(address) view returns(uint256)",
-      "function decimals() view returns(uint8)"
-    ];
-    const abiStaking = [
-      "function deposit(uint256 amount) public",
-      "function withdraw(uint256 amount) public",
-      "function claim() public",
-      "function users(address) view returns (uint256 amount, uint256 rewardDebt)",
-      "function pendingReward(address userAddr) view returns (uint256)"
-    ];
+async function getPriceUSD(){
+  try{
+    const res=await fetch(`https://api.pancakeswap.info/api/v2/tokens/${TOKEN}`);
+    const j=await res.json();
+    if(j.data?.price)return parseFloat(j.data.price);
+  }catch(e){console.log("price fetch fail",e);}
+  return 0;
+}
 
-    let provider, signer, account, token, staking, decimals, priceUSD = null;
-    const $ = id => document.getElementById(id);
-    function showToast(msg) {
-      const t = $("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2200);
-    }
+async function refresh(){
+  if(!signer)return connect();
+  showToast("🔄 Updating...");
+  const [u,pending,trBal,price]=await Promise.all([
+    staking.users(account),staking.pendingReward(account),
+    token.balanceOf(TREASURY),getPriceUSD()
+  ]);
+  const stake=parseFloat(ethers.utils.formatUnits(u.amount,decimals));
+  const rew=parseFloat(ethers.utils.formatUnits(pending,decimals));
+  const tre=parseFloat(ethers.utils.formatUnits(trBal,decimals));
+  $("stake").textContent=stake.toFixed(4);
+  $("reward").textContent=rew.toFixed(4);
+  $("treasuryBal").textContent=tre.toFixed(2);
+  $("rewardUsd").textContent=`≈ $${(rew*price).toFixed(4)} USD`;
+}
 
-    function toggleMenu() {
-      $("popupMenu").classList.toggle("active");
-      $("menuOverlay").classList.toggle("active");
-    }
+async function deposit(){
+  if(!signer)return connect();
+  const val=$("amount").value;if(!val||Number(val)<=0)return showToast("Enter amount");
+  const amt=ethers.utils.parseUnits(val,decimals);
+  try{
+    showToast("Approving...");
+    const tx1=await token.approve(STAKING,amt);await tx1.wait();
+    showToast("Depositing...");
+    const tx2=await staking.deposit(amt);await tx2.wait();
+    showToast("✅ Deposit success");refresh();
+  }catch(e){console.error(e);showToast("Deposit failed");}
+}
 
-    function toggleLang() {
-      const b = $("btnLang");
-      if (b.textContent === "EN") {
-        b.textContent = "TH";
-        // เปลี่ยนเป็นภาษาไทย
-        $("labelWallet").textContent = "กระเป๋าเงินดิจิทัล";
-        $("labelTotal").textContent = "ยอดรวมในระบบ";
-        $("labelStake").textContent = "เหรียญที่คุณฝากฟาร์ม";
-        $("labelPending").textContent = "รางวัลรอรับ";
-        $("labelClaim").textContent = "รับรางวัล";
-        $("labelBuy").textContent   = "ซื้อเหรียญ GDSX";
-        $("titleEN").textContent   = "🌾 GDSX ฟาร์ม ULTRA++";
-        $("subtitleEN").textContent= "อนาคตแห่งทองคำดิจิทัล — ระบบทองคำดิจิทัลแห่งยุคใหม่";
-        $("labelFooterEn").style.display = "none";
-        $("labelFooterTh").style.display = "inline";
-      } else {
-        b.textContent = "EN";
-        // กลับเป็นภาษาอังกฤษ
-        $("labelWallet").textContent = "Wallet";
-        $("labelTotal").textContent = "Total GDSX";
-        $("labelStake").textContent = "Your Stake";
-        $("labelPending").textContent = "Pending Rewards";
-        $("labelClaim").textContent = "Claim";
-        $("labelBuy").textContent   = "BUY GDSX";
-        $("titleEN").textContent   = "🌾 GDSX FARM ULTRA++";
-        $("subtitleEN").textContent= "The Future of Digital Gold — Digital Gold Ecosystem of the Future";
-        $("labelFooterTh").style.display = "none";
-        $("labelFooterEn").style.display = "inline";
-      }
-    }
+async function withdraw(){
+  if(!signer)return connect();
+  const val=$("amount").value;if(!val||Number(val)<=0)return showToast("Enter amount");
+  const amt=ethers.utils.parseUnits(val,decimals);
+  try{
+    showToast("Withdrawing...");
+    const tx=await staking.withdraw(amt);await tx.wait();
+    showToast("📤 Withdraw success");refresh();
+  }catch(e){console.error(e);showToast("Withdraw failed");}
+}
 
-    async function ensureBSC() {
-      const net = await provider.getNetwork();
-      if (net.chainId !== parseInt(BSC_MAINNET, 16)) {
-        try {
-          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BSC_MAINNET }] });
-          showToast("Switched to BNB Smart Chain");
-        } catch (e) {
-          if (e.code === 4902) {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [{
-                chainId: BSC_MAINNET,
-                chainName: "BNB Smart Chain",
-                nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-                rpcUrls: ["https://bsc-dataseed.binance.org/"],
-                blockExplorerUrls: ["https://bscscan.com"]
-              }]
-            });
-          } else {
-            throw e;
-          }
-        }
-      }
-    }
-
-    async function fetchPriceUSD() {
-      try {
-        let r = await fetch(`https://api.pancakeswap.info/api/v2/tokens/${TOKEN}`, { cache: "no-store" });
-        if (r.ok) {
-          const j = await r.json();
-          if (j?.data?.price) {
-            return parseFloat(j.data.price);
-          }
-        }
-        r = await fetch("https://api.pancakeswap.info/api/v2/tokens", { cache: "no-store" });
-        if (r.ok) {
-          const j = await r.json();
-          if (j?.data?.[TOKEN]?.price) {
-            return parseFloat(j.data[TOKEN].price);
-          }
-        }
-      } catch (e) {
-        console.warn("Price API failed", e);
-      }
-      return null;
-    }
-
-    async function connectWallet() {
-      if (!window.ethereum) { alert("⚠️ Please install MetaMask first"); return; }
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      await ensureBSC();
-      signer = provider.getSigner();
-      account = await signer.getAddress();
-      $("wallet").textContent = account.slice(0, 6) + "..." + account.slice(-4);
-      token = new ethers.Contract(TOKEN, abiToken, signer);
-      staking = new ethers.Contract(STAKING, abiStaking, signer);
-      decimals = await token.decimals();
-      showToast("✅ Wallet connected");
-      await refreshAll();
-    }
-
-    async function loadData() {
-      if (!signer) { showToast("Connect wallet first"); return; }
-      try {
-        const [user, pending, trBal] = await Promise.all([
-          staking.users(account),
-          staking.pendingReward(account),
-          token.balanceOf(TREASURY)
-        ]);
-        const stakeNum = parseFloat(ethers.utils.formatUnits(user.amount, decimals));
-        const rewardNum = parseFloat(ethers.utils.formatUnits(pending, decimals));
-        const treasuryNum = parseFloat(ethers.utils.formatUnits(trBal, decimals));  
-
-        $("stake").textContent = stakeNum.toFixed(4);
-        $("reward").textContent = rewardNum.toFixed(4);
-        $("treasuryBal").textContent = treasuryNum.toFixed(2);
-
-        if (priceUSD !== null) {
-          const usd = rewardNum * priceUSD;
-          $("rewardUsd").textContent = `≈ $${usd.toFixed(4)} USD`;
-        } else {
-          $("rewardUsd").textContent = "≈ — USD";
-        }
-
-        ["stake","reward","treasuryBal"].forEach(id => $(id).classList.remove("load"));
-      } catch (err) {
-        console.error(err);
-        showToast("Load failed");
-      }
-    }
-
-    async function refreshAll() {
-      $("rewardUsd").textContent = "≈ — USD";
-      priceUSD = await fetchPriceUSD();
-      if (priceUSD !== null) { showToast("💲 Price updated"); }
-      await loadData();
-    }
-
-    function disableActions(disabled) {
-      ["btnDeposit","btnWithdraw","btnClaim","btnRefresh","connectBtn"].forEach(id => {
-        const el = $(id);
-        if (el) {
-          el.disabled = disabled;
-          el.style.opacity = disabled ? .6 : 1;
-        }
-      });
-    }
-
-    async function deposit() {
-      if (!signer) { showToast("Connect wallet first"); return; }
-      const val = $("amount").value;
-      if (!val || Number(val) <= 0) { showToast("Enter amount"); return; }
-      try {
-        disableActions(true);
-        await ensureBSC();
-        const amt = ethers.utils.parseUnits(val, decimals);
-        showToast("Approving...");
-        const r1 = await token.approve(STAKING, amt); await r1.wait();
-        showToast("Depositing...");
-        const r2 = await staking.deposit(amt); await r2.wait();
-        showToast("✅ Deposit success");
-        await refreshAll();
-      } catch (err) {
-        console.error(err);
-        showToast("Deposit failed");
-      } finally {
-        disableActions(false);
-      }
-    }
-
-    async function withdraw() {
-      if (!signer) { showToast("Connect wallet first"); return; }
-      const val = $("amount").value;
-      if (!val || Number(val) <= 0) { showToast("Enter amount"); return; }
-      try {
-        disableActions(true);
-        await ensureBSC();
-        const amt = ethers.utils.parseUnits(val, decimals);
-        showToast("Withdrawing...");
-        const r = await staking.withdraw(amt); await r.wait();
-        showToast("📤 Withdraw success");
-        await refreshAll();
-      } catch (err) {
-        console.error(err);
-        showToast("Withdraw failed");
-      } finally {
-        disableActions(false);
-      }
-    }
-
-    async function claim() {
-      if (!signer) { showToast("Connect wallet first"); return; }
-      try {
-        disableActions(true);
-        await ensureBSC();
-        showToast("Claiming...");
-        const r = await staking.claim(); await r.wait();
-        showToast("🎁 Claim success");
-        await refreshAll();
-      } catch (err) {
-        console.error(err);
-        showToast("Claim failed");
-      } finally {
-        disableActions(false);
-      }
-    }
-
-    function buyGDSX() {
-      window.open("https://pancakeswap.finance/swap?outputCurrency=" + TOKEN, "_blank");
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      $("btnDeposit").addEventListener("click", deposit);
-      $("btnWithdraw").addEventListener("click", withdraw);
-      $("btnClaim").addEventListener("click", claim);
-      $("btnBuy").addEventListener("click", buyGDSX);
-      $("btnRefresh").addEventListener("click", refreshAll);
-      $("connectBtn").addEventListener("click", connectWallet);
-      $("btnMenu").addEventListener("click", toggleMenu);
-      $("menuOverlay").addEventListener("click", toggleMenu);
-      $("btnLang").addEventListener("click", toggleLang);
-    });
-  </script>
+async function claim(){
+  if(!signer)return connect();
+  try{
+    showToast("Claiming...");
+    const tx=await staking.withdraw(0);await tx.wait();
+    showToast("🎁 Claim success");refresh();
+  }catch(e){console.error(e);showToast("Claim failed");}
+}
+</script>
 </body>
 </html>

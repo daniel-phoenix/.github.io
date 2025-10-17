@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎁 GDSX Lucky Draw</title>
+<style>
+  body {
+    font-family: "Poppins", "Noto Sans Thai", sans-serif;
+    background: radial-gradient(circle at top, #000 40%, #111 100%);
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 40px;
+  }
+  h1 {
+    color: gold;
+    text-shadow: 0 0 10px #ffcc00;
+    margin-bottom: 20px;
+  }
+  button {
+    background: linear-gradient(90deg, #ffd700, #ffb400);
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 15px gold;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #ffcc00;
+  }
+  #result {
+    margin-top: 30px;
+    font-size: 22px;
+    color: #00ffd5;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎁 GDSX Lucky Draw</h1>
+<p>สุ่มโชคของคุณวันนี้!</p>
+
+<button onclick="draw()">เริ่มสุ่ม</button>
+<div id="result"></div>
+
+<script>
+function draw() {
+  const prizes = [
+    "🎉 คุณได้รางวัลใหญ่ 100 GDSX!",
+    "✨ คุณได้รางวัลรอง 50 GDSX!",
+    "🥈 คุณได้ 20 GDSX!",
+    "💎 คุณได้ 10 GDSX!",
+    "😅 เสียดายจัง ลองใหม่พรุ่งนี้!"
+  ];
+  const randomIndex = Math.floor(Math.random() * prizes.length);
+  const result = prizes[randomIndex];
+  document.getElementById("result").innerHTML = result;
+}
+</script>
+
+</body>
+</html>

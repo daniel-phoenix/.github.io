@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>🎡 GDSX Lucky Wheel – Casino Premium Edition</title>
+<title>🎡 GDSX Lucky Wheel – Casino Premium Edition v2.1</title>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
 body{
@@ -32,6 +32,7 @@ body{
   width:320px;height:320px;border-radius:50%;
   border:10px solid #ffd700;margin:30px auto;position:relative;
   overflow:hidden;box-shadow:0 0 40px #ffcc33,0 0 80px #ff9933 inset;
+  z-index:1;
 }
 .slice{
   position:absolute;width:50%;height:50%;transform-origin:100% 100%;
@@ -46,12 +47,14 @@ body{
   width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
   border-bottom:30px solid #ffd700;margin:0 auto;position:relative;top:-15px;
   filter:drop-shadow(0 0 10px #ffcc33);
+  pointer-events:none;
 }
 button{
   background:linear-gradient(90deg,#ffcc33,#ff6600);
   border:none;color:#000;padding:10px 25px;margin:10px;
   border-radius:10px;font-weight:bold;font-size:1em;cursor:pointer;
   box-shadow:0 0 15px #ffcc33aa;transition:.3s;
+  position:relative;z-index:5000;
 }
 button:hover{box-shadow:0 0 25px #fff;}
 .toast{
@@ -75,6 +78,7 @@ button:hover{box-shadow:0 0 25px #fff;}
   position:fixed;top:-50px;width:25px;height:25px;
   background:radial-gradient(circle,#ffd700 20%,#b8860b 90%);
   border-radius:50%;box-shadow:0 0 10px #ffea80;animation:fall 3s linear forwards;
+  z-index:4000;
 }
 @keyframes fall{
   to{transform:translateY(120vh) rotate(720deg);opacity:0;}

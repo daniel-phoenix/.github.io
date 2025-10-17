@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 GDSX Coin Catcher</title>
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at top, #000, #111);
+  color: white;
+  font-family: "Poppins", "Noto Sans Thai", sans-serif;
+  text-align: center;
+}
+h1 {
+  color: gold;
+  text-shadow: 0 0 15px #ffd700;
+  margin-top: 15px;
+}
+canvas {
+  display: block;
+  margin: 10px auto;
+  background: linear-gradient(180deg, #222, #000);
+  border: 2px solid gold;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(255,215,0,0.4);
+}
+button {
+  background: linear-gradient(90deg,#ffd700,#ffb400);
+  border: none;
+  color: #000;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 0 10px gold;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover { box-shadow: 0 0 25px gold; }
+#score {
+  font-size: 22px;
+  color: #00ffd5;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+<h1>🎮 GDSX Coin Catcher</h1>
+<p>ลากกระเป๋าเพื่อเก็บเหรียญทอง GDSX! 🪙</p>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<p id="score">คะแนน: 0</p>
+<button id="restartBtn">🔁 เริ่มใหม่</button>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let basket = { x: 160, y: 540, width: 80, height: 30 };
+let coins = [];
+let score = 0;
+let gameOver = false;
+
+// โหลดภาพ
+const basketImg = new Image();
+basketImg.src = "https://cdn-icons-png.flaticon.com/512/891/891462.png";
+
+const coinImg = new Image();
+coinImg.src = "https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png";
+
+// ฟังก์ชันเริ่มเกม
+function resetGame() {
+  coins = [];
+  score = 0;
+  gameOver = false;
+  document.getElementById("score").innerText = "คะแนน: 0";
+  update();
+}
+
+// เพิ่มเหรียญ
+function spawnCoin() {
+  coins.push({ x: Math.random() * 370, y: -30, speed: 3 + Math.random() * 3 });
+}
+
+// วาดตะกร้า
+function drawBasket() {
+  ctx.drawImage(basketImg, basket.x, basket.y, basket.width, basket.height);
+}
+
+// วาดเหรียญ
+function drawCoins() {
+  coins.forEach(c => ctx.drawImage(coinImg, c.x, c.y, 30, 30));
+}
+
+// ตรวจชน
+function checkCollision(c) {
+  return (
+    c.x < basket.x + basket.width &&
+    c.x + 30 > basket.x &&
+    c.y + 30 > basket.y &&
+    c.y < basket.y + basket.height
+  );
+}
+
+// อัปเดต
+function update() {
+  if (gameOver) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // วาดตะกร้า
+  drawBasket();
+
+  // เหรียญตก
+  coins.forEach(c => (c.y += c.speed));
+
+  // ตรวจชน
+  coins.forEach((c, i) => {
+    if (checkCollision(c)) {
+      coins.splice(i, 1);
+      score++;
+      document.getElementById("score").innerText = `คะแนน: ${score}`;
+    } else if (c.y > canvas.height) {
+      coins.splice(i, 1);
+    }
+  });
+
+  // สุ่มเหรียญ
+  if (Math.random() < 0.03) spawnCoin();
+
+  // วาดเหรียญทั้งหมด
+  drawCoins();
+
+  // แพ้ถ้าพลาดเยอะ (ตัวอย่าง)
+  if (score >= 50) {
+    ctx.fillStyle = "gold";
+    ctx.font = "30px Poppins";
+    ctx.fillText("🏆 ชนะ! คุณเก็บครบ 50 เหรียญ!", 30, 300);
+    gameOver = true;
+    return;
+  }
+
+  requestAnimationFrame(update);
+}
+
+// ควบคุมเมาส์
+canvas.addEventListener("mousemove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  basket.x = e.clientX - rect.left - basket.width / 2;
+});
+
+// ควบคุมสัมผัส (มือถือ)
+canvas.addEventListener("touchmove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  basket.x = touch.clientX - rect.left - basket.width / 2;
+});
+
+// ปุ่มเริ่มใหม่
+document.getElementById("restartBtn").addEventListener("click", resetGame);
+
+resetGame();
+</script>
+</body>
+</html>

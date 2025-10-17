@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 GDSX Block Puzzle</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body {
+  margin:0;
+  font-family:"Poppins","Noto Sans Thai",sans-serif;
+  background:linear-gradient(135deg,#1a0033,#220044,#002244);
+  color:#fff;
+  text-align:center;
+  overflow:hidden;
+}
+
+/* โลโก้เรืองแสงหลายสี */
+.logo {
+  width:110px;height:110px;margin:20px auto;
+  border-radius:50%;
+  box-shadow:0 0 25px 8px #fff4;
+  background:url('https://daniel-phoenix.github.io/gdsx-logo.png') center/cover;
+  animation:glow 5s infinite linear;
+}
+@keyframes glow {
+  0%{box-shadow:0 0 25px #ffd700;}
+  25%{box-shadow:0 0 25px #00ffff;}
+  50%{box-shadow:0 0 25px #ff66cc;}
+  75%{box-shadow:0 0 25px #bb00ff;}
+  100%{box-shadow:0 0 25px #ffd700;}
+}
+
+/* กระดาน */
+#board {
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:4px;
+  width:320px;
+  margin:10px auto;
+}
+.cell {
+  width:36px;height:36px;
+  background:rgba(255,255,255,0.08);
+  border-radius:6px;
+}
+.filled {
+  background:linear-gradient(145deg,#ffd700,#ffb700);
+  box-shadow:0 0 10px #ffeb3b;
+}
+
+/* ปุ่มต่างๆ */
+button {
+  background:linear-gradient(90deg,#00ffff,#ff66cc);
+  border:none;color:#000;
+  padding:10px 20px;margin:8px;
+  border-radius:10px;font-weight:bold;
+  font-size:1em;cursor:pointer;
+  box-shadow:0 0 12px #00ffffaa;
+  transition:0.3s;
+}
+button:hover {box-shadow:0 0 20px #fff;}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+
+#score {font-size:20px;margin-top:10px;color:#ffd700;text-shadow:0 0 8px #ffd;}
+#claimInfo {color:#00ffcc;font-size:.9em;margin-top:6px;}
+.toast {
+  position:fixed;bottom:60px;left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);
+  padding:10px 16px;border-radius:10px;
+  border:1px solid #ffd700;
+  color:#fff;display:none;
+}
+
+/* ปุ่มกลับ */
+.back-btn {
+  position:fixed;top:15px;left:15px;
+  background:#111;color:#ffd700;
+  border:1px solid #ffd700;
+  border-radius:8px;padding:6px 12px;
+  font-size:.9em;cursor:pointer;
+}
+.back-btn:hover{background:#222;}
+</style>
+</head>
+
+<body>
+<button class="back-btn" onclick="window.location.href='index.html'">🏠 กลับหน้าเว็บหลัก</button>
+<div class="logo"></div>
+<h2>🧩 GDSX Block Puzzle</h2>
+<p>สะสมคะแนนและรับเหรียญทอง GDSX จริง!</p>
+
+<div id="board"></div>
+<p id="score">คะแนน: 0</p>
+<p id="claimInfo">🎯 เคลมรางวัลได้เมื่อครบ 1,000 คะแนน (วันละครั้ง)</p>
+
+<button id="startBtn" onclick="startGame()">เริ่มเกม</button>
+<button id="claimBtn" onclick="claimReward()" disabled>🎁 Claim GDSX Reward</button>
+<button id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+
+<div class="toast" id="toast"></div>
+<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b6caa0b3e.mp3?filename=coin-collect-6432.mp3"></audio>
+
+<script>
+const TOKEN = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const TREASURY = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+let provider, signer, account;
+let score = 0;
+let lastClaimTime = 0;
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.innerText=msg;
+  t.style.display="block";
+  setTimeout(()=>t.style.display="none",2500);
+}
+
+async function connectWallet(){
+  try{
+    if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner();
+    account=await signer.getAddress();
+    showToast("✅ เชื่อมกระเป๋าแล้ว: "+account.slice(0,6)+"..."+account.slice(-4));
+  }catch(e){console.error(e);showToast("❌ เชื่อมไม่สำเร็จ");}
+}
+
+function startGame(){
+  score = 0;
+  document.getElementById("score").innerText = "คะแนน: 0";
+  buildBoard();
+  showToast("🎮 เริ่มเกม!");
+}
+
+function buildBoard(){
+  const board=document.getElementById("board");
+  board.innerHTML="";
+  for(let i=0;i<64;i++){
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.onclick=()=>fillCell(cell);
+    board.appendChild(cell);
+  }
+}
+
+function fillCell(cell){
+  const clickSound=document.getElementById("clickSound");
+  clickSound.currentTime=0;clickSound.play();
+  if(!cell.classList.contains("filled")){
+    cell.classList.add("filled");
+    score+=Math.floor(Math.random()*5)+1; // สุ่มคะแนนเล็กน้อย
+    document.getElementById("score").innerText="คะแนน: "+score;
+    checkReward();
+  }
+}
+
+function checkReward(){
+  const claimBtn=document.getElementById("claimBtn");
+  if(score>=1000){ claimBtn.disabled=false; }
+}
+
+function calcRewardTier(score){
+  if(score>=50000) return 80;
+  if(score>=20000) return 25;
+  if(score>=10000) return 10;
+  if(score>=5000)  return 5;
+  if(score>=2000)  return 2;
+  if(score>=1000)  return 1;
+  return 0;
+}
+
+async function claimReward(){
+  if(!signer){return connectWallet();}
+  const now = Date.now();
+  if(now - lastClaimTime < 86400000){
+    showToast("⏳ เคลมได้อีกครั้งหลัง 24 ชั่วโมง");
+    return;
+  }
+  const reward = calcRewardTier(score);
+  if(reward<=0){showToast("ยังไม่ถึงระดับรางวัล");return;}
+  try{
+    const treasury=new ethers.Contract(TREASURY,["function transfer(address,uint256) public returns(bool)"],signer);
+    const amount=ethers.utils.parseUnits(reward.toString(),18);
+    const tx=await treasury.transfer(account,amount);
+    await tx.wait();
+    lastClaimTime = now;
+    showToast(`🎉 เคลมสำเร็จ! ได้รับ ${reward} เหรียญทอง GDSX!`);
+    document.getElementById("claimBtn").disabled=true;
+  }catch(e){
+    console.error(e);
+    showToast("❌ การเคลมล้มเหลว");
+  }
+}
+</script>
+</body>
+</html>

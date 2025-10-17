@@ -8,7 +8,7 @@
 <style>
 body{
   margin:0;font-family:"Poppins","Noto Sans Thai",sans-serif;
-  background:radial-gradient(circle at center,#400000,#120000 90%);
+  background:radial-gradient(circle at center,#400000,#150000 85%);
   color:#fff;text-align:center;overflow:hidden;position:relative;
 }
 .logo{
@@ -43,7 +43,7 @@ body{
 }
 .arrow{
   width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;
-  border-bottom:35px solid #ffd700;margin:0 auto;position:relative;top:-20px;
+  border-bottom:35px solid #ffd700;margin:0 auto;position:relative;top:-15px;
   filter:drop-shadow(0 0 10px #ffcc33);
 }
 button{
@@ -55,7 +55,7 @@ button{
 button:hover{box-shadow:0 0 25px #fff;}
 .controls{
   display:flex;flex-direction:column;align-items:center;
-  position:relative;top:-10px;
+  position:relative;top:-30px; /* ปรับให้ปุ่มขึ้นสูงขึ้น */
 }
 .toast{
   position:fixed;bottom:50px;left:50%;transform:translateX(-50%);
@@ -119,7 +119,9 @@ const funnyQuotes=[
  "😆 หมุนแรงไปหน่อย เกือบหลุดจาก BSC แล้ว!",
  "🤣 ดวงวันนี้เหมาะกับการไปนอนมากกว่าหมุน!",
  "😏 เสี่ยงโชคไม่เข้า แต่หล่อเข้าแน่นอน!",
- "😂 Smart Contract ยังอึ้งกับผลนี้!"
+ "😂 Smart Contract ยังอึ้งกับผลนี้!",
+ "🤣 หมุนได้แต่อารมณ์ดี ไม่มีเหรียญแต่มีฮา!",
+ "🤭 Jackpot มองหน้าแล้วหนีเฉยเลย!"
 ];
 
 const prizes=[
@@ -127,7 +129,7 @@ const prizes=[
  {text:"💰 รับ 12 GDSX",reward:12},
  {text:"💎 Jackpot 15 GDSX",reward:15},
  {text:"💰 รับ 18 GDSX",reward:18},
- {text:"🤣 ฮาได้ไม่ต้องใช้เหรียญ",reward:"funny"},
+ {text:"🤣 ฮาไม่ต้องใช้เหรียญ",reward:"funny"},
  {text:"💎 รับ 20 GDSX",reward:20},
  {text:"💥 รับ 25 GDSX",reward:25},
  {text:"💰 รับ 30 GDSX",reward:30}
@@ -176,11 +178,11 @@ async function spin(){
  const spinBtn=document.getElementById("spinBtn");
  spinBtn.disabled=true;
  const tick=document.getElementById("tick");
- let deg=0,speed=35,target=Math.floor(Math.random()*360+2520); // หมุนนานขึ้น
+ let deg=0,speed=35,target=Math.floor(Math.random()*360+2880); // หมุนนานขึ้น ~12 วิ
  const wheel=document.getElementById("wheel");
  const interval=setInterval(()=>{
    deg+=speed;wheel.style.transform=`rotate(${deg}deg)`;
-   if(speed>2)speed-=0.08;
+   if(speed>2)speed-=0.07;
    if(deg%20<1){tick.currentTime=0;tick.play();}
    if(speed<=2 && deg>=target){
      clearInterval(interval);

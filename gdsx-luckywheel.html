@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🎡 GDSX Lucky Wheel</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body{
+  margin:0;font-family:"Poppins","Noto Sans Thai",sans-serif;
+  background:linear-gradient(135deg,#66ccff,#ff99cc);
+  text-align:center;color:#fff;overflow:hidden;
+}
+.logo{
+  width:110px;height:110px;margin:20px auto;
+  border-radius:50%;background:url('https://daniel-phoenix.github.io/gdsx-logo.png')center/cover;
+  animation:glow 5s infinite linear;
+}
+@keyframes glow{
+  0%{box-shadow:0 0 25px #ffd700;}
+  25%{box-shadow:0 0 25px #00ffff;}
+  50%{box-shadow:0 0 25px #ff66cc;}
+  75%{box-shadow:0 0 25px #bb00ff;}
+  100%{box-shadow:0 0 25px #ffd700;}
+}
+#wheel{
+  width:300px;height:300px;border-radius:50%;
+  border:8px solid #fff;position:relative;margin:20px auto;
+  overflow:hidden;box-shadow:0 0 25px #fff8;
+}
+.slice{
+  position:absolute;width:50%;height:50%;
+  background:conic-gradient(#ffb6c1,#87cefa);
+  transform-origin:100% 100%;clip-path:polygon(0 0,100% 0,100% 100%);
+  border-right:1px solid #fff;
+}
+.arrow{
+  width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+  border-bottom:25px solid #fff;margin:0 auto;position:relative;top:-10px;
+}
+button{
+  background:linear-gradient(90deg,#00ffff,#ff66cc);
+  border:none;color:#000;padding:10px 20px;margin:8px;
+  border-radius:10px;font-weight:bold;font-size:1em;cursor:pointer;
+  box-shadow:0 0 12px #00ffffaa;transition:0.3s;
+}
+button:hover{box-shadow:0 0 20px #fff;}
+.toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);padding:10px 16px;border-radius:10px;
+  border:1px solid #ffd700;color:#fff;display:none;
+}
+.back-btn{
+  position:fixed;top:15px;left:15px;background:#111;color:#ffd700;
+  border:1px solid #ffd700;border-radius:8px;padding:6px 12px;
+  font-size:.9em;cursor:pointer;
+}
+</style>
+</head>
+<body>
+<button class="back-btn"onclick="window.location.href='index.html'">🏠 กลับหน้าเว็บหลัก</button>
+<div class="logo"></div>
+<h2>🎡 GDSX Lucky Wheel</h2>
+<p>หมุนลุ้นฮา รับเหรียญ GDSX จริง ขั้นต่ำ 5 GDSX 💎</p>
+
+<div id="wheel"></div>
+<div class="arrow"></div>
+<button id="spinBtn"onclick="spin()">🎡 หมุนเลย!</button>
+<button id="connectBtn"onclick="connectWallet()">🔗 Connect Wallet</button>
+<div class="toast"id="toast"></div>
+
+<audio id="tick"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b61e9f9b7.mp3?filename=click-tick.mp3"></audio>
+<audio id="laugh"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8a9b7d73b5.mp3?filename=laugh-2.mp3"></audio>
+<audio id="win"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b6caa0b3e.mp3?filename=coin-collect-6432.mp3"></audio>
+
+<script>
+const TOKEN="0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+let provider,signer,account,lastSpin=0;
+
+const prizes=[
+ {text:"💰 รับ 5 GDSX – เริ่มต้นก็ปัง!",reward:5},
+ {text:"💰 รับ 7 GDSX – รวยเบาๆ พอกรุบ!",reward:7},
+ {text:"💎 Jackpot 10 GDSX – เทพหมุน!",reward:10},
+ {text:"💎 รับ 15 GDSX – อย่าเพิ่งขาย เดี๋ยวพุ่ง!",reward:15},
+ {text:"🎁 รับ 20 GDSX – มงลงแล้ววันนี้!",reward:20},
+ {text:"💰 รับ 8 GDSX – ค่าชาไข่มุก!",reward:8},
+ {text:"💎 Jackpot 30 GDSX – สุดจัด!",reward:30},
+ {text:"🎁 หมุนฟรีอีก 1 รอบ!",reward:"bonus"},
+ {text:"🤣 หมุนฟรีแต่เสียงหัวเราะไม่ฟรีนะ!",reward:"joke"},
+ {text:"🧙‍♂️ เทพ GDSX ให้ 12 GDSX!",reward:12},
+ {text:"😂 เฉียด Jackpot ไปนิดเดียวว!",reward:"joke"},
+ {text:"💥 Boom! รับ 25 GDSX!",reward:25}
+];
+
+function createWheel(){
+ const wheel=document.getElementById("wheel");
+ const sliceDeg=360/prizes.length;
+ prizes.forEach((p,i)=>{
+   const s=document.createElement("div");
+   s.className="slice";
+   s.style.transform=`rotate(${i*sliceDeg}deg)`;
+   s.style.background=`hsl(${i*30},80%,60%)`;
+   s.innerHTML=`<span style="position:absolute;top:20%;left:60%;transform:rotate(${90+sliceDeg/2}deg);font-size:12px;">${p.text}</span>`;
+   wheel.appendChild(s);
+ });
+}
+createWheel();
+
+function showToast(msg){
+ const t=document.getElementById("toast");
+ t.innerText=msg;t.style.display="block";
+ setTimeout(()=>t.style.display="none",2500);
+}
+
+async function connectWallet(){
+ if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
+ provider=new ethers.providers.Web3Provider(window.ethereum);
+ await provider.send("eth_requestAccounts",[]);
+ signer=provider.getSigner();
+ account=await signer.getAddress();
+ showToast("✅ เชื่อมแล้ว "+account.slice(0,6)+"..."+account.slice(-4));
+}
+
+async function spin(){
+ if(!signer)return connectWallet();
+ const now=Date.now();
+ if(now-lastSpin<86400000){showToast("⏳ หมุนได้วันละครั้งนะบอส!");return;}
+ const spinBtn=document.getElementById("spinBtn");
+ spinBtn.disabled=true;
+ const tick=document.getElementById("tick");
+ let deg=0,speed=20,target=Math.floor(Math.random()*360+720);
+ const wheel=document.getElementById("wheel");
+ const interval=setInterval(()=>{
+   deg+=speed;wheel.style.transform=`rotate(${deg}deg)`;
+   tick.currentTime=0;tick.play();
+   if(deg>=target){
+     clearInterval(interval);
+     spinBtn.disabled=false;
+     lastSpin=now;
+     const slice=Math.floor(((360-(deg%360))%360)/(360/prizes.length));
+     handleResult(prizes[slice]);
+   }
+ },20);
+}
+
+async function handleResult(p){
+ const laugh=document.getElementById("laugh");
+ const win=document.getElementById("win");
+ if(typeof p.reward==="number"){
+   win.play();
+   showToast(`🎉 คุณได้รับ ${p.reward} GDSX!`);
+   try{
+     const t=new ethers.Contract(TREASURY,["function transfer(address,uint256)public returns(bool)"],signer);
+     const amount=ethers.utils.parseUnits(p.reward.toString(),18);
+     const tx=await t.transfer(account,amount);
+     await tx.wait();
+     showToast(`🎉 โอน ${p.reward} GDSX เข้ากระเป๋าเรียบร้อย!`);
+   }catch(e){console.error(e);showToast("❌ โอนล้มเหลว");}
+ }else if(p.reward==="bonus"){
+   win.play();
+   showToast("🎁 หมุนฟรีอีก 1 ครั้ง!");
+ }else{
+   laugh.play();
+   showToast(p.text);
+ }
+}
+</script>
+</body>
+</html>

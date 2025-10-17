@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛏ GDSX Tap Miner</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body {
+  font-family: "Poppins", "Noto Sans Thai", sans-serif;
+  background: radial-gradient(circle at top, #000 40%, #111 100%);
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 30px;
+}
+h1 {
+  color: gold;
+  text-shadow: 0 0 15px #ffcc00;
+}
+button {
+  background: linear-gradient(90deg, #ffd700, #ffb400);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 0 10px gold;
+  margin: 10px;
+}
+button:hover {
+  transform: scale(1.05);
+}
+img {
+  width: 150px;
+  margin: 20px auto;
+  display: block;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>⛏ GDSX Tap Miner</h1>
+<button id="connectBtn">🔗 Connect Wallet</button>
+
+<main>
+  <img id="coin" src="https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png" alt="GDSX Coin">
+  <h2>คุณขุดได้ <span id="score">0</span> ครั้ง</h2>
+  <button id="claimBtn">🎁 Claim GDSX</button>
+</main>
+
+<script>
+let score = 0;
+document.getElementById("coin").addEventListener("click", () => {
+  score++;
+  document.getElementById("score").innerText = score;
+});
+
+document.getElementById("claimBtn").addEventListener("click", () => {
+  alert(`คุณได้ขุดทั้งหมด ${score} ครั้ง`);
+});
+
+document.getElementById("connectBtn").addEventListener("click", async () => {
+  if (window.ethereum) {
+    try {
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      alert("✅ เชื่อมต่อ MetaMask สำเร็จ!");
+    } catch (err) {
+      alert("❌ ปฏิเสธการเชื่อมต่อกระเป๋า");
+    }
+  } else {
+    alert("กรุณาติดตั้ง MetaMask ก่อนใช้งาน");
+  }
+});
+</script>
+
+</body>
+</html>

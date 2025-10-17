@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 GDSX Jump Run</title>
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #000, #111);
+  color: white;
+  font-family: "Poppins", "Noto Sans Thai", sans-serif;
+  text-align: center;
+}
+h1 {
+  color: gold;
+  text-shadow: 0 0 15px #ffd700;
+  margin-top: 15px;
+}
+canvas {
+  display: block;
+  margin: 20px auto;
+  background: linear-gradient(180deg, #222, #111);
+  border: 2px solid gold;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255,215,0,0.4);
+}
+button {
+  background: linear-gradient(90deg,#ffd700,#ffb400);
+  border: none;
+  color: #000;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 0 10px gold;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  box-shadow: 0 0 25px gold;
+}
+#score {
+  font-size: 20px;
+  color: #00ffd5;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<h1>🏆 GDSX Jump Run</h1>
+<p>แตะหน้าจอหรือกด Space เพื่อกระโดด! ✨</p>
+<canvas id="gameCanvas" width="800" height="300"></canvas>
+<p id="score">คะแนน: 0</p>
+<button id="restartBtn">🔁 เริ่มใหม่</button>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let gameOver = false;
+let score = 0;
+let speed = 6;
+
+// ตัวผู้เล่น
+const player = {
+  x: 100,
+  y: 200,
+  size: 40,
+  vy: 0,
+  gravity: 0.8,
+  jumpPower: -14,
+  grounded: false,
+  img: new Image(),
+};
+player.img.src = "https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png";
+
+// สิ่งกีดขวาง
+const obstacles = [];
+
+function spawnObstacle() {
+  const height = Math.random() * 30 + 20;
+  obstacles.push({
+    x: canvas.width,
+    y: 260 - height,
+    width: 20,
+    height,
+  });
+}
+
+function drawPlayer() {
+  ctx.drawImage(player.img, player.x, player.y, player.size, player.size);
+}
+
+function drawObstacles() {
+  ctx.fillStyle = "gold";
+  obstacles.forEach(ob => {
+    ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  });
+}
+
+function update() {
+  if (gameOver) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // ขยับผู้เล่น
+  player.vy += player.gravity;
+  player.y += player.vy;
+
+  if (player.y + player.size >= 260) {
+    player.y = 260 - player.size;
+    player.vy = 0;
+    player.grounded = true;
+  }
+
+  // อัปเดตสิ่งกีดขวาง
+  obstacles.forEach(ob => (ob.x -= speed));
+
+  // ลบสิ่งกีดขวางที่ออกจากจอ
+  if (obstacles.length > 0 && obstacles[0].x + obstacles[0].width < 0) {
+    obstacles.shift();
+    score++;
+    document.getElementById("score").innerText = `คะแนน: ${score}`;
+  }
+
+  // สุ่มสิ่งกีดขวาง
+  if (Math.random() < 0.02) spawnObstacle();
+
+  // ตรวจชน
+  for (const ob of obstacles) {
+    if (
+      player.x < ob.x + ob.width &&
+      player.x + player.size > ob.x &&
+      player.y + player.size > ob.y
+    ) {
+      gameOver = true;
+      ctx.fillStyle = "red";
+      ctx.font = "30px Poppins";
+      ctx.fillText("💀 Game Over 💀", canvas.width / 2 - 100, 150);
+      return;
+    }
+  }
+
+  // วาดทุกอย่าง
+  drawPlayer();
+  drawObstacles();
+
+  requestAnimationFrame(update);
+}
+
+function jump() {
+  if (player.grounded) {
+    player.vy = player.jumpPower;
+    player.grounded = false;
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") jump();
+});
+canvas.addEventListener("click", jump);
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  obstacles.length = 0;
+  score = 0;
+  gameOver = false;
+  player.y = 200;
+  speed = 6;
+  document.getElementById("score").innerText = "คะแนน: 0";
+  update();
+});
+
+update();
+</script>
+</body>
+</html>

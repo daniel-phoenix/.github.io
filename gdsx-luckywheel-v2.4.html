@@ -8,7 +8,7 @@
 <style>
 body{
   margin:0;font-family:"Poppins","Noto Sans Thai",sans-serif;
-  background:radial-gradient(circle at center,#440000,#220000 80%);
+  background:radial-gradient(circle at center,#400000,#150000 80%);
   color:#fff;text-align:center;overflow:hidden;position:relative;
 }
 .logo{
@@ -70,7 +70,7 @@ button:hover{box-shadow:0 0 25px #fff;}
 }
 .popup-content{
   background:radial-gradient(circle,#ffcc33 20%,#aa0000 90%);
-  padding:25px 40px;border-radius:15px;color:#000;font-size:1.3em;font-weight:bold;
+  padding:25px 40px;border-radius:15px;color:#000;font-size:1.4em;font-weight:bold;
   text-shadow:0 0 10px #fff;text-align:center;max-width:80%;
   animation:pop 0.6s ease-out;
 }
@@ -110,15 +110,24 @@ const TOKEN="0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
 const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
 let provider,signer,account,lastSpin=0;
 
+const funnyQuotes=[
+ "😆 เฉียดรางวัลใหญ่ขนาดนี้ พรุ่งนี้ซื้อหวยได้เลย!",
+ "😂 เกือบแล้วบอส! เหรียญหนีไปเข้ากระเป๋า dev ซะงั้น",
+ "🤣 หมุนขำๆ แต่ระบบจ่ายจริงนะ!",
+ "😜 วงล้อบอกให้กลับไปทำฟาร์มก่อน 555+",
+ "🤪 Jackpot แค่เอื้อม แต่ดวงบอสยังไม่อนุญาต!",
+ "😅 หมุนรอบนี้ฟรี เสียแค่ศักดิ์ศรีนักล่ารางวัล!"
+];
+
 const prizes=[
  {text:"💰 รับ 10 GDSX",reward:10},
  {text:"💰 รับ 12 GDSX",reward:12},
  {text:"💎 Jackpot 15 GDSX",reward:15},
  {text:"💰 รับ 18 GDSX",reward:18},
- {text:"🎁 หมุนฟรีอีก 1 รอบ!",reward:"bonus"},
- {text:"🤣 เฉียด Jackpot!",reward:"joke"},
+ {text:"🤣 โชครั่วๆ!",reward:"funny"},
  {text:"💎 รับ 20 GDSX",reward:20},
- {text:"💥 Boom! รับ 25 GDSX",reward:25}
+ {text:"💥 รับ 25 GDSX",reward:25},
+ {text:"💰 รับ 30 GDSX",reward:30}
 ];
 
 function createWheel(){
@@ -192,9 +201,10 @@ async function handleResult(p){
      await tx.wait();
      showToast(`🎉 โอน ${p.reward} GDSX สำเร็จ!`);
    }catch(e){console.error(e);showToast("❌ โอนล้มเหลว");}
- }else if(p.reward==="bonus"){
-   win.play();showPopup("🎁 หมุนฟรีอีก 1 รอบ!");
-   setTimeout(()=>{spin();},4500); // หมุนฟรีอัตโนมัติ
+ }else if(p.reward==="funny"){
+   laugh.play();
+   const quote=funnyQuotes[Math.floor(Math.random()*funnyQuotes.length)];
+   showPopup(quote);
  }else{
    laugh.play();showPopup(p.text);
  }

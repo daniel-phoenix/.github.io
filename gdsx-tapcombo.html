@@ -29,7 +29,7 @@ h1 {
   width: 70px;
   height: 70px;
   cursor: pointer;
-  animation: float 3s ease-in-out infinite;
+  animation: float 2s ease-in-out infinite;
 }
 @keyframes float {
   0% { transform: translateY(0); }
@@ -88,6 +88,7 @@ const gameArea = document.getElementById("game-area");
 const scoreDisplay = document.getElementById("score");
 const timerDisplay = document.getElementById("timer");
 const tapSound = document.getElementById("tapSound");
+const startBtn = document.getElementById("startBtn");
 let score = 0;
 let timeLeft = 30;
 let gameInterval, spawnInterval;
@@ -98,11 +99,11 @@ function random(min, max) {
 
 function spawnCoin() {
   const coin = document.createElement("img");
-  coin.src = "https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png";
+  coin.src = "https://daniel-phoenix.github.io/gdsx-logo.png";
   coin.className = "coin";
-  coin.style.left = random(0, window.innerWidth - 70) + "px";
-  coin.style.top = random(0, window.innerHeight - 150) + "px";
-  
+  coin.style.left = random(0, window.innerWidth - 80) + "px";
+  coin.style.top = random(60, window.innerHeight - 160) + "px";
+
   coin.onclick = () => {
     tapSound.currentTime = 0;
     tapSound.play();
@@ -117,7 +118,6 @@ function spawnCoin() {
   };
 
   gameArea.appendChild(coin);
-
   setTimeout(() => coin.remove(), 1500);
 }
 
@@ -126,26 +126,29 @@ function startGame() {
   timeLeft = 30;
   scoreDisplay.innerText = "คะแนน: 0";
   timerDisplay.innerText = "⏱ เหลือเวลา: 30 วินาที";
-  document.getElementById("startBtn").disabled = true;
+  startBtn.disabled = true;
+
+  // เริ่ม spawn หลังจากโหลด DOM เสร็จแน่ ๆ
+  setTimeout(() => {
+    spawnInterval = setInterval(spawnCoin, 600);
+  }, 500);
 
   gameInterval = setInterval(() => {
     timeLeft--;
     timerDisplay.innerText = "⏱ เหลือเวลา: " + timeLeft + " วินาที";
     if (timeLeft <= 0) endGame();
   }, 1000);
-
-  spawnInterval = setInterval(spawnCoin, 600);
 }
 
 function endGame() {
   clearInterval(gameInterval);
   clearInterval(spawnInterval);
-  document.getElementById("startBtn").disabled = false;
+  startBtn.disabled = false;
 
   alert("🎉 หมดเวลา! คุณได้ทั้งหมด " + score + " คะแนน");
 }
 
-document.getElementById("startBtn").addEventListener("click", startGame);
+startBtn.addEventListener("click", startGame);
 </script>
 </body>
 </html>

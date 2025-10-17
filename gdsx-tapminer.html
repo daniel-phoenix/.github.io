@@ -39,6 +39,15 @@ img {
   margin: 20px auto;
   display: block;
   cursor: pointer;
+  transition: transform 0.1s;
+}
+img:active {
+  transform: scale(0.9);
+}
+#balance {
+  font-size: 20px;
+  color: #00ffd5;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -50,18 +59,23 @@ img {
 <main>
   <img id="coin" src="https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png" alt="GDSX Coin">
   <h2>คุณขุดได้ <span id="score">0</span> ครั้ง</h2>
+  <h3 id="balance">💎 สะสมทั้งหมด: 0.0 GDSX</h3>
   <button id="claimBtn">🎁 Claim GDSX</button>
 </main>
 
 <script>
 let score = 0;
+let totalGDSX = 0;
+
 document.getElementById("coin").addEventListener("click", () => {
   score++;
+  totalGDSX += 0.1;
   document.getElementById("score").innerText = score;
+  document.getElementById("balance").innerText = `💎 สะสมทั้งหมด: ${totalGDSX.toFixed(1)} GDSX`;
 });
 
 document.getElementById("claimBtn").addEventListener("click", () => {
-  alert(`คุณได้ขุดทั้งหมด ${score} ครั้ง`);
+  alert(`🎉 คุณสะสมได้ทั้งหมด ${totalGDSX.toFixed(1)} GDSX!`);
 });
 
 document.getElementById("connectBtn").addEventListener("click", async () => {

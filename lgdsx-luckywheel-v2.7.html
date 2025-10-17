@@ -26,11 +26,23 @@ body{
   border:1px solid #ffd700;border-radius:8px;padding:6px 12px;
   font-size:.9em;cursor:pointer;z-index:2000;
 }
+#wheel-container{
+  position:relative;width:340px;height:340px;margin:30px auto;
+}
 #wheel{
-  width:320px;height:320px;border-radius:50%;
-  border:12px solid #ffd700;margin:25px auto;position:relative;
+  width:340px;height:340px;border-radius:50%;
+  border:12px solid #ffd700;position:absolute;top:0;left:0;
   overflow:hidden;box-shadow:0 0 40px #ffcc33,0 0 90px #ff6600 inset;
   z-index:1;
+}
+.light{
+  position:absolute;width:10px;height:10px;border-radius:50%;
+  background:#ff0;box-shadow:0 0 15px #fff;
+  animation:blink 1s infinite alternate;
+}
+@keyframes blink{
+  0%,100%{opacity:1;}
+  50%{opacity:0.3;}
 }
 .slice{
   position:absolute;width:50%;height:50%;transform-origin:100% 100%;
@@ -43,7 +55,7 @@ body{
 }
 .arrow{
   width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;
-  border-bottom:35px solid #ffd700;margin:0 auto;position:relative;top:-15px;
+  border-bottom:35px solid #ffd700;margin:0 auto;position:relative;top:-10px;
   filter:drop-shadow(0 0 10px #ffcc33);
 }
 button{
@@ -55,7 +67,7 @@ button{
 button:hover{box-shadow:0 0 25px #fff;}
 .controls{
   display:flex;flex-direction:column;align-items:center;
-  position:relative;top:-30px; /* ปรับให้ปุ่มขึ้นสูงขึ้น */
+  position:relative;top:-20px; /* ปรับให้ปุ่มสูงขึ้น */
 }
 .toast{
   position:fixed;bottom:50px;left:50%;transform:translateX(-50%);
@@ -89,7 +101,10 @@ button:hover{box-shadow:0 0 25px #fff;}
 <h2>🎡 GDSX Lucky Wheel</h2>
 <p>หมุนวงล้อรับรางวัลจริง! ขั้นต่ำ 10 GDSX 💎</p>
 
-<div id="wheel"></div>
+<div id="wheel-container">
+  <div id="wheel"></div>
+  <div id="lights"></div>
+</div>
 <div class="arrow"></div>
 
 <div class="controls">
@@ -121,7 +136,10 @@ const funnyQuotes=[
  "😏 เสี่ยงโชคไม่เข้า แต่หล่อเข้าแน่นอน!",
  "😂 Smart Contract ยังอึ้งกับผลนี้!",
  "🤣 หมุนได้แต่อารมณ์ดี ไม่มีเหรียญแต่มีฮา!",
- "🤭 Jackpot มองหน้าแล้วหนีเฉยเลย!"
+ "🤭 Jackpot มองหน้าแล้วหนีเฉยเลย!",
+ "😅 นี่มันวงล้อหรือเครื่องซักผ้าเนี่ย!",
+ "🤣 MetaMask ยังขำ!",
+ "😂 เหรียญไม่มาแต่บอสมาแน่!"
 ];
 
 const prizes=[
@@ -134,6 +152,19 @@ const prizes=[
  {text:"💥 รับ 25 GDSX",reward:25},
  {text:"💰 รับ 30 GDSX",reward:30}
 ];
+
+function createLights(){
+ const l=document.getElementById("lights");
+ for(let i=0;i<36;i++){
+   const angle=(i*10)*Math.PI/180;
+   const light=document.createElement("div");
+   light.className="light";
+   light.style.left=170+Math.cos(angle)*165+"px";
+   light.style.top=170+Math.sin(angle)*165+"px";
+   light.style.animationDelay=(Math.random()*1)+"s";
+   l.appendChild(light);
+ }
+}
 
 function createWheel(){
  const wheel=document.getElementById("wheel");
@@ -148,6 +179,7 @@ function createWheel(){
  });
 }
 createWheel();
+createLights();
 
 function showToast(msg){
  const t=document.getElementById("toast");
@@ -178,11 +210,11 @@ async function spin(){
  const spinBtn=document.getElementById("spinBtn");
  spinBtn.disabled=true;
  const tick=document.getElementById("tick");
- let deg=0,speed=35,target=Math.floor(Math.random()*360+2880); // หมุนนานขึ้น ~12 วิ
+ let deg=0,speed=35,target=Math.floor(Math.random()*360+3240); // หมุนนานขึ้น ~15 วิ
  const wheel=document.getElementById("wheel");
  const interval=setInterval(()=>{
    deg+=speed;wheel.style.transform=`rotate(${deg}deg)`;
-   if(speed>2)speed-=0.07;
+   if(speed>2)speed-=0.06;
    if(deg%20<1){tick.currentTime=0;tick.play();}
    if(speed<=2 && deg>=target){
      clearInterval(interval);

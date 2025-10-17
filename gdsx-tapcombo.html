@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ GDSX Tap Combo</title>
+<style>
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #000, #111);
+  color: white;
+  font-family: "Poppins","Noto Sans Thai",sans-serif;
+  overflow: hidden;
+  text-align: center;
+}
+h1 {
+  color: gold;
+  text-shadow: 0 0 15px #ffd700;
+  margin-top: 10px;
+}
+#game-area {
+  position: relative;
+  width: 100vw;
+  height: 80vh;
+  overflow: hidden;
+}
+.coin {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  cursor: pointer;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+#score {
+  font-size: 22px;
+  color: #00ffd5;
+  margin: 10px;
+}
+#timer {
+  font-size: 20px;
+  color: #ffb300;
+}
+button {
+  background: linear-gradient(90deg,#ffd700,#ffb400);
+  border: none;
+  color: #000;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 0 10px gold;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  box-shadow: 0 0 25px gold;
+}
+.flash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(255,255,150,0.2);
+  z-index: 1000;
+  animation: flashAnim 0.3s;
+}
+@keyframes flashAnim {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+</style>
+</head>
+<body>
+<h1>⚡ GDSX Tap Combo</h1>
+<p>คลิกเหรียญให้ได้มากที่สุดใน 30 วินาที!</p>
+<p id="timer">⏱ เหลือเวลา: 30 วินาที</p>
+<p id="score">คะแนน: 0</p>
+<div id="game-area"></div>
+<button id="startBtn">🎮 เริ่มเกม</button>
+
+<audio id="tapSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b6caa0b3e.mp3?filename=coin-collect-6432.mp3"></audio>
+
+<script>
+const gameArea = document.getElementById("game-area");
+const scoreDisplay = document.getElementById("score");
+const timerDisplay = document.getElementById("timer");
+const tapSound = document.getElementById("tapSound");
+let score = 0;
+let timeLeft = 30;
+let gameInterval, spawnInterval;
+
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function spawnCoin() {
+  const coin = document.createElement("img");
+  coin.src = "https://raw.githubusercontent.com/daniel-phoenix/daniel-phoenix.github.io/main/gdsx-logo.png";
+  coin.className = "coin";
+  coin.style.left = random(0, window.innerWidth - 70) + "px";
+  coin.style.top = random(0, window.innerHeight - 150) + "px";
+  
+  coin.onclick = () => {
+    tapSound.currentTime = 0;
+    tapSound.play();
+    score++;
+    scoreDisplay.innerText = "คะแนน: " + score;
+    coin.remove();
+
+    const flash = document.createElement("div");
+    flash.classList.add("flash");
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 200);
+  };
+
+  gameArea.appendChild(coin);
+
+  setTimeout(() => coin.remove(), 1500);
+}
+
+function startGame() {
+  score = 0;
+  timeLeft = 30;
+  scoreDisplay.innerText = "คะแนน: 0";
+  timerDisplay.innerText = "⏱ เหลือเวลา: 30 วินาที";
+  document.getElementById("startBtn").disabled = true;
+
+  gameInterval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.innerText = "⏱ เหลือเวลา: " + timeLeft + " วินาที";
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+
+  spawnInterval = setInterval(spawnCoin, 600);
+}
+
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(spawnInterval);
+  document.getElementById("startBtn").disabled = false;
+
+  alert("🎉 หมดเวลา! คุณได้ทั้งหมด " + score + " คะแนน");
+}
+
+document.getElementById("startBtn").addEventListener("click", startGame);
+</script>
+</body>
+</html>

@@ -75,7 +75,7 @@ footer p {
   display:inline-block;white-space:nowrap;color:var(--gold);font-weight:600;font-size:.9em;
   animation:scrollText 18s linear infinite;text-shadow:0 0 6px var(--gold);margin-top:2px;
 }
-@keyframes scrollText {from{transform:translateX(100%);}to{transform:translateX(-100%);}}
+@keyframes scrollText {from{transform:translateX(100%);}to{transform:translateX(-100%);} }
 .toast {
   position:fixed;left:50%;bottom:60px;transform:translateX(-50%);
   background:rgba(20,20,20,.95);border:1px solid var(--gold);
@@ -110,6 +110,17 @@ footer p {
 .popup-menu a{color:var(--gold);text-decoration:none;padding:12px 20px;border-bottom:1px solid rgba(255,215,0,.3);}
 .popup-menu a:hover{background:rgba(255,215,0,0.1);}
 .powered {margin-top:10px;color:var(--gold);font-size:.9em;}
+.game-center-btn {
+  background:linear-gradient(90deg,#ffd700,#ffb400);
+  color:#000;font-weight:700;border:none;border-radius:12px;
+  padding:10px 20px;margin-top:10px;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  box-shadow:0 0 15px rgba(255,215,0,0.8);
+  transition:.3s;
+}
+.game-center-btn:hover {
+  box-shadow:0 0 30px rgba(255,255,150,1);
+}
 </style>
 </head>
 
@@ -122,6 +133,7 @@ footer p {
 <div class="popup-menu" id="popupMenu">
   <a href="#">🌾 Farm</a>
   <a href="#">💰 Treasury</a>
+  <a href="https://daniel-phoenix.github.io/game.html" target="_blank">🎮 GDSX Game Center</a>
   <a href="#">🎁 Lucky Draw</a>
   <a href="#">📄 Whitepaper</a>
   <a href="#">🎈 Airdrop</a>
@@ -144,6 +156,7 @@ footer p {
     <button id="btnWithdraw" onclick="withdraw()">Withdraw</button>
     <button class="claim" id="btnClaim" onclick="claim()">Claim</button>
     <button class="buy" id="btnBuy" onclick="buyGdsx()">BUY GDSX</button>
+    <a href="https://daniel-phoenix.github.io/game.html" target="_blank" class="game-center-btn">🎮 GDSX Game Center</a>
     <button id="btnRefresh" onclick="refresh()">Refresh</button>
   </div>
   <div class="powered">Powered by DNX Finance © 2025</div>

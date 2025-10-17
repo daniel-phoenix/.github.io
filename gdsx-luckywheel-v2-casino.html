@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🎡 GDSX Lucky Wheel – Casino Premium Edition</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body{
+  margin:0;font-family:"Poppins","Noto Sans Thai",sans-serif;
+  background:radial-gradient(circle at center,#440000,#220000 80%);
+  color:#fff;text-align:center;overflow:hidden;position:relative;
+}
+.logo{
+  width:110px;height:110px;margin:20px auto;border-radius:50%;
+  background:url('https://daniel-phoenix.github.io/gdsx-logo.png')center/cover;
+  animation:glow 5s linear infinite;
+}
+@keyframes glow{
+  0%{box-shadow:0 0 25px #ffd700;}
+  25%{box-shadow:0 0 25px #ff3333;}
+  50%{box-shadow:0 0 25px #00ffff;}
+  75%{box-shadow:0 0 25px #ff66ff;}
+  100%{box-shadow:0 0 25px #ffd700;}
+}
+.back-btn{
+  position:fixed;top:15px;left:15px;background:#111;color:#ffd700;
+  border:1px solid #ffd700;border-radius:8px;padding:6px 12px;
+  font-size:.9em;cursor:pointer;z-index:2000;
+}
+#wheel{
+  width:320px;height:320px;border-radius:50%;
+  border:10px solid #ffd700;margin:30px auto;position:relative;
+  overflow:hidden;box-shadow:0 0 40px #ffcc33,0 0 80px #ff9933 inset;
+}
+.slice{
+  position:absolute;width:50%;height:50%;transform-origin:100% 100%;
+  clip-path:polygon(0 0,100% 0,100% 100%);
+  border-right:2px solid #fff3;
+}
+.slice span{
+  position:absolute;top:30%;left:55%;transform:rotate(90deg);
+  font-size:13px;font-weight:bold;text-shadow:1px 1px 2px #000;
+}
+.arrow{
+  width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+  border-bottom:30px solid #ffd700;margin:0 auto;position:relative;top:-15px;
+  filter:drop-shadow(0 0 10px #ffcc33);
+}
+button{
+  background:linear-gradient(90deg,#ffcc33,#ff6600);
+  border:none;color:#000;padding:10px 25px;margin:10px;
+  border-radius:10px;font-weight:bold;font-size:1em;cursor:pointer;
+  box-shadow:0 0 15px #ffcc33aa;transition:.3s;
+}
+button:hover{box-shadow:0 0 25px #fff;}
+.toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);padding:10px 16px;border-radius:10px;
+  border:1px solid #ffd700;color:#fff;display:none;z-index:2000;
+}
+.popup{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;
+  z-index:3000;flex-direction:column;
+}
+.popup-content{
+  background:radial-gradient(circle,#ffcc33 20%,#aa0000 90%);
+  padding:25px 40px;border-radius:15px;color:#000;font-size:1.3em;font-weight:bold;
+  text-shadow:0 0 10px #fff;text-align:center;max-width:80%;
+  animation:pop 0.6s ease-out;
+}
+@keyframes pop{0%{transform:scale(0.3);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.coin{
+  position:fixed;top:-50px;width:25px;height:25px;
+  background:radial-gradient(circle,#ffd700 20%,#b8860b 90%);
+  border-radius:50%;box-shadow:0 0 10px #ffea80;animation:fall 3s linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(120vh) rotate(720deg);opacity:0;}
+}
+</style>
+</head>
+<body>
+<button class="back-btn"onclick="window.location.href='index.html'">🏠 กลับหน้าเว็บหลัก</button>
+<div class="logo"></div>
+<h2>🎡 GDSX Lucky Wheel – Casino Premium Edition</h2>
+<p>หมุนลุ้นฮา แจกจริง ขั้นต่ำ 5 GDSX 💎</p>
+<div id="wheel"></div>
+<div class="arrow"></div>
+<button id="spinBtn"onclick="spin()">🎰 หมุนเลย!</button>
+<button id="connectBtn"onclick="connectWallet()">🔗 Connect Wallet</button>
+<div class="toast"id="toast"></div>
+<div class="popup"id="popup"><div class="popup-content"id="popupText"></div></div>
+
+<audio id="tick"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b61e9f9b7.mp3?filename=click-tick.mp3" preload="auto"></audio>
+<audio id="laugh"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8a9b7d73b5.mp3?filename=laugh-2.mp3" preload="auto"></audio>
+<audio id="win"src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b6caa0b3e.mp3?filename=coin-collect-6432.mp3" preload="auto"></audio>
+
+<script>
+const TOKEN="0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+let provider,signer,account,lastSpin=0;
+
+const prizes=[
+ {text:"💰 รับ 5 GDSX / Win 5 GDSX",reward:5},
+ {text:"💰 รับ 7 GDSX / Win 7 GDSX",reward:7},
+ {text:"💎 Jackpot 10 GDSX / Jackpot 10 GDSX",reward:10},
+ {text:"💎 รับ 15 GDSX / Win 15 GDSX",reward:15},
+ {text:"🎁 รับ 20 GDSX / Win 20 GDSX",reward:20},
+ {text:"💰 รับ 8 GDSX / Win 8 GDSX",reward:8},
+ {text:"💎 Jackpot 30 GDSX / Jackpot 30 GDSX",reward:30},
+ {text:"🎁 หมุนฟรีอีก 1 รอบ / Bonus Spin!",reward:"bonus"},
+ {text:"🤣 หมุนฟรีแต่เสียงหัวเราะไม่ฟรีนะ! / Free laugh!",reward:"joke"},
+ {text:"🧙‍♂️ เทพ GDSX ให้ 12 GDSX / Blessing 12 GDSX!",reward:12},
+ {text:"😂 เฉียด Jackpot ไปนิดเดียวว! / Almost hit the jackpot!",reward:"joke"},
+ {text:"💥 Boom! รับ 25 GDSX / Win 25 GDSX!",reward:25}
+];
+
+function createWheel(){
+ const wheel=document.getElementById("wheel");
+ const sliceDeg=360/prizes.length;
+ prizes.forEach((p,i)=>{
+   const s=document.createElement("div");
+   s.className="slice";
+   s.style.transform=`rotate(${i*sliceDeg}deg)`;
+   s.style.background=`hsl(${i*30},90%,50%)`;
+   s.innerHTML=`<span>${p.text}</span>`;
+   wheel.appendChild(s);
+ });
+}
+createWheel();
+
+function showToast(msg){
+ const t=document.getElementById("toast");
+ t.innerText=msg;t.style.display="block";
+ setTimeout(()=>t.style.display="none",2500);
+}
+function showPopup(msg){
+ const pop=document.getElementById("popup");
+ const text=document.getElementById("popupText");
+ text.innerHTML=msg;
+ pop.style.display="flex";
+ setTimeout(()=>{pop.style.display="none";},4000);
+}
+
+async function connectWallet(){
+ if(!window.ethereum){alert("กรุณาติดตั้ง MetaMask");return;}
+ provider=new ethers.providers.Web3Provider(window.ethereum);
+ await provider.send("eth_requestAccounts",[]);
+ signer=provider.getSigner();
+ account=await signer.getAddress();
+ showToast("✅ เชื่อมแล้ว "+account.slice(0,6)+"..."+account.slice(-4));
+}
+
+async function spin(){
+ if(!signer)return connectWallet();
+ const now=Date.now();
+ if(now-lastSpin<86400000){showToast("⏳ หมุนได้วันละครั้งนะบอส!");return;}
+ const spinBtn=document.getElementById("spinBtn");
+ spinBtn.disabled=true;
+ const tick=document.getElementById("tick");
+ let deg=0,speed=30,target=Math.floor(Math.random()*360+2160);
+ const wheel=document.getElementById("wheel");
+ const interval=setInterval(()=>{
+   deg+=speed;wheel.style.transform=`rotate(${deg}deg)`;
+   if(speed>2)speed-=0.1;
+   if(deg%15<1){tick.currentTime=0;tick.play();}
+   if(speed<=2 && deg>=target){
+     clearInterval(interval);
+     spinBtn.disabled=false;lastSpin=now;
+     const slice=Math.floor(((360-(deg%360))%360)/(360/prizes.length));
+     handleResult(prizes[slice]);
+   }
+ },20);
+}
+
+async function handleResult(p){
+ const laugh=document.getElementById("laugh");
+ const win=document.getElementById("win");
+ if(typeof p.reward==="number"){
+   win.play();makeCoins();
+   showPopup(`🎉 คุณได้รับ ${p.reward} GDSX!<br>✨ You won ${p.reward} GDSX!`);
+   try{
+     const t=new ethers.Contract(TREASURY,["function transfer(address,uint256)public returns(bool)"],signer);
+     const amount=ethers.utils.parseUnits(p.reward.toString(),18);
+     const tx=await t.transfer(account,amount);
+     await tx.wait();
+     showToast(`🎉 โอน ${p.reward} GDSX เรียบร้อย!`);
+   }catch(e){console.error(e);showToast("❌ โอนล้มเหลว");}
+ }else if(p.reward==="bonus"){
+   win.play();showPopup("🎁 หมุนฟรีอีก 1 รอบ!<br>Bonus Spin!");
+ }else{
+   laugh.play();showPopup(p.text);
+ }
+}
+function makeCoins(){
+ for(let i=0;i<30;i++){
+   const c=document.createElement("div");
+   c.className="coin";
+   c.style.left=Math.random()*100+"%";
+   c.style.animationDelay=(Math.random()*2)+"s";
+   document.body.appendChild(c);
+   setTimeout(()=>c.remove(),3000);
+ }
+}
+</script>
+</body>
+</html>

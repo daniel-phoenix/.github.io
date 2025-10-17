@@ -81,16 +81,14 @@ button:hover{box-shadow:0 0 25px #fff;}
   border-radius:50%;box-shadow:0 0 10px #ffea80;animation:fall 3s linear forwards;
   z-index:4000;
 }
-@keyframes fall{
-  to{transform:translateY(120vh) rotate(720deg);opacity:0;}
-}
+@keyframes fall{to{transform:translateY(120vh) rotate(720deg);opacity:0;}}
 </style>
 </head>
 <body>
 <button class="back-btn"onclick="window.location.href='index.html'">🏠 กลับหน้าเว็บหลัก</button>
 <div class="logo"></div>
 <h2>🎡 GDSX Lucky Wheel</h2>
-<p>หมุนวงล้อรับรางวัลจริง! ขั้นต่ำ 5 GDSX 💎</p>
+<p>หมุนวงล้อรับรางวัลจริง! ขั้นต่ำ 10 GDSX 💎</p>
 
 <div id="wheel"></div>
 <div class="arrow"></div>
@@ -113,14 +111,14 @@ const TREASURY="0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
 let provider,signer,account,lastSpin=0;
 
 const prizes=[
- {text:"💰 รับ 5 GDSX",reward:5},
- {text:"💰 รับ 7 GDSX",reward:7},
- {text:"💎 Jackpot 10 GDSX",reward:10},
- {text:"💰 รับ 8 GDSX",reward:8},
+ {text:"💰 รับ 10 GDSX",reward:10},
+ {text:"💰 รับ 12 GDSX",reward:12},
+ {text:"💎 Jackpot 15 GDSX",reward:15},
+ {text:"💰 รับ 18 GDSX",reward:18},
  {text:"🎁 หมุนฟรีอีก 1 รอบ!",reward:"bonus"},
  {text:"🤣 เฉียด Jackpot!",reward:"joke"},
- {text:"💎 รับ 15 GDSX",reward:15},
- {text:"💥 Boom! รับ 20 GDSX",reward:20}
+ {text:"💎 รับ 20 GDSX",reward:20},
+ {text:"💥 Boom! รับ 25 GDSX",reward:25}
 ];
 
 function createWheel(){
@@ -130,7 +128,7 @@ function createWheel(){
    const s=document.createElement("div");
    s.className="slice";
    s.style.transform=`rotate(${i*sliceDeg}deg)`;
-   s.style.background=`hsl(${i*40},90%,50%)`;
+   s.style.background=`hsl(${i*45},90%,55%)`;
    s.innerHTML=`<span>${p.text}</span>`;
    wheel.appendChild(s);
  });
@@ -162,7 +160,7 @@ async function connectWallet(){
 async function spin(){
  if(!signer)return connectWallet();
  const now=Date.now();
- if(now-lastSpin<86400000){showToast("⏳ หมุนได้วันละครั้งนะบอส!");return;}
+ if(now-lastSpin<86400000){showToast("⏳ หมุนได้วันละครั้งเท่านั้น!");return;}
  const spinBtn=document.getElementById("spinBtn");
  spinBtn.disabled=true;
  const tick=document.getElementById("tick");
@@ -196,6 +194,7 @@ async function handleResult(p){
    }catch(e){console.error(e);showToast("❌ โอนล้มเหลว");}
  }else if(p.reward==="bonus"){
    win.play();showPopup("🎁 หมุนฟรีอีก 1 รอบ!");
+   setTimeout(()=>{spin();},4500); // หมุนฟรีอัตโนมัติ
  }else{
    laugh.play();showPopup(p.text);
  }

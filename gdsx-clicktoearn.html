@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ GDSX Click to Earn</title>
+<style>
+body {
+  font-family: "Poppins", "Noto Sans Thai", sans-serif;
+  background: linear-gradient(180deg, #000, #111);
+  color: #fff;
+  text-align: center;
+  padding: 40px;
+}
+h1 {
+  color: gold;
+  text-shadow: 0 0 15px #ffcc00;
+}
+#clickBtn {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, #ffb400);
+  color: #000;
+  font-size: 22px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 25px gold;
+  transition: all 0.1s;
+}
+#clickBtn:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 10px #ffcc00;
+}
+#balance {
+  font-size: 20px;
+  margin-top: 20px;
+  color: #00ffd5;
+}
+</style>
+</head>
+<body>
+
+<h1>⚡ GDSX Click to Earn</h1>
+<p>คลิกปุ่มเพื่อสะสมเหรียญ GDSX!</p>
+<button id="clickBtn">⚡ CLICK ⚡</button>
+<h3 id="balance">💎 สะสมทั้งหมด: 0.0 GDSX</h3>
+
+<script>
+let balance = 0;
+
+document.getElementById("clickBtn").addEventListener("click", () => {
+  balance += 0.5;
+  document.getElementById("balance").innerText = `💎 สะสมทั้งหมด: ${balance.toFixed(1)} GDSX`;
+});
+</script>
+
+</body>
+</html>

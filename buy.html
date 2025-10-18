@@ -1,86 +1,101 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BUY GDSX 💎</title>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<style>
-body {
-  font-family: "Poppins","Noto Sans Thai",sans-serif;
-  background: radial-gradient(circle at top,#000 40%,#111 100%);
-  color: #ffd700;
-  text-align: center;
-  padding-top: 100px;
-}
-h1 { font-size: 2em; margin-bottom: 10px; }
-p { color: #ccc; }
-input {
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  width: 180px;
-  text-align: center;
-  font-size: 18px;
-}
-button {
-  margin-top: 20px;
-  padding: 15px 30px;
-  border: none;
-  border-radius: 12px;
-  background: #ffd700;
-  color: #000;
-  font-weight: bold;
-  font-size: 18px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover { background: #fff; color: #000; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💰 Buy GDSX</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: "Poppins", "Noto Sans Thai", sans-serif;
+      background: radial-gradient(circle at top, #000 40%, #111 100%);
+      color: white;
+      text-align: center;
+      padding: 80px 20px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 40px;
+      color: #ffd700;
+    }
+    input {
+      width: 200px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      background: linear-gradient(90deg, #ffd700, #ff9a00);
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 25px;
+      margin: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+  </style>
 </head>
+
 <body>
-  <h1>BUY GDSX 💎</h1>
-  <p>ใช้ USDT เพื่อซื้อเหรียญ GDSX โดยตรง</p>
-  <input id="amount" placeholder="จำนวน USDT" type="number" min="1">
-  <br>
-  <button id="buyBtn">Connect & Buy</button>
+  <h1>💎 ซื้อเหรียญ GDSX ด้วย USDT</h1>
+
+  <input id="amount" type="number" placeholder="จำนวน USDT" />
+  <br />
+  <button onclick="connectWallet()">🔗 Connect Wallet</button>
+  <button onclick="buyGDSX()">💰 Buy GDSX</button>
 
   <script>
-  const CONTRACT_ADDRESS = "0xe0323a9AdD98F14939ddeb62DC4076AfeE94DFad"; // GDSXPaymentUSDT
-  const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // USDT บน BSC
-  const ABI = [
-    "function buyGDSX(uint256 _usdtAmount)",
-    "function pricePerUSDT() view returns (uint256)"
-  ];
+    // ==== ตั้งค่า Smart Contract ====
+    const CONTRACT_ADDRESS = "0xe0323a9AdD98F14939ddeb62DC4076AfeE94DFad"; // GDSXPaymentUSDT
+    const ABI = [
+      {
+        "inputs": [{ "internalType": "uint256", "name": "usdtAmount", "type": "uint256" }],
+        "name": "buyGDSX",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
 
-  async function buyNow() {
-    if (!window.ethereum) return alert("⚠️ กรุณาเปิด MetaMask ก่อน");
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
+    let provider, signer, contract;
 
-    const amount = document.getElementById("amount").value;
-    if (amount <= 0) return alert("กรุณาใส่จำนวน USDT ที่ต้องการซื้อ");
+    // ==== เชื่อมต่อกระเป๋า ====
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        alert("✅ Wallet Connected!");
+      } else {
+        alert("กรุณาติดตั้ง MetaMask ก่อนใช้งาน");
+      }
+    }
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-    const usdt = new ethers.Contract(USDT_ADDRESS, [
-      "function approve(address spender, uint256 amount) external returns (bool)"
-    ], signer);
+    // ==== ฟังก์ชันซื้อเหรียญ GDSX ====
+    async function buyGDSX() {
+      const usdtAmount = document.getElementById("amount").value;
+      if (!usdtAmount || usdtAmount <= 0) {
+        alert("⚠️ กรุณาใส่จำนวน USDT ที่ต้องการซื้อ");
+        return;
+      }
 
-    const usdtAmount = ethers.utils.parseUnits(amount, 18);
-
-    // ✅ อนุมัติ USDT ให้สัญญาใช้ได้ก่อน
-    const approveTx = await usdt.approve(CONTRACT_ADDRESS, usdtAmount);
-    await approveTx.wait();
-
-    // ✅ ดำเนินการซื้อ GDSX
-    const buyTx = await contract.buyGDSX(usdtAmount);
-    await buyTx.wait();
-
-    alert("🎉 ซื้อ GDSX สำเร็จแล้ว! ตรวจสอบในกระเป๋าได้เลย");
-  }
-
-  document.getElementById("buyBtn").onclick = buyNow;
+      try {
+        const tx = await contract.buyGDSX(usdtAmount);
+        await tx.wait();
+        alert("🎉 ซื้อ GDSX สำเร็จ!");
+      } catch (error) {
+        alert("❌ Error: " + (error.message || error));
+      }
+    }
   </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
     body {
       font-family: "Poppins", "Noto Sans Thai", sans-serif;
       background: radial-gradient(circle at top, #000 40%, #111 100%);
-      color: white;
+      color: #fff;
       text-align: center;
       padding: 80px 20px;
     }
@@ -29,7 +29,7 @@
     }
     button {
       background: linear-gradient(90deg, #ffd700, #ff9a00);
-      color: black;
+      color: #000;
       font-weight: bold;
       border: none;
       border-radius: 10px;
@@ -53,7 +53,6 @@
   <button onclick="buyGDSX()">💰 Buy GDSX</button>
 
   <script>
-    // ==== ตั้งค่า Smart Contract ====
     const CONTRACT_ADDRESS = "0xe0323a9AdD98F14939ddeb62DC4076AfeE94DFad"; // GDSXPaymentUSDT
     const ABI = [
       {
@@ -67,7 +66,6 @@
 
     let provider, signer, contract;
 
-    // ==== เชื่อมต่อกระเป๋า ====
     async function connectWallet() {
       if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -80,14 +78,12 @@
       }
     }
 
-    // ==== ฟังก์ชันซื้อเหรียญ GDSX ====
     async function buyGDSX() {
       const usdtAmount = document.getElementById("amount").value;
       if (!usdtAmount || usdtAmount <= 0) {
         alert("⚠️ กรุณาใส่จำนวน USDT ที่ต้องการซื้อ");
         return;
       }
-
       try {
         const tx = await contract.buyGDSX(usdtAmount);
         await tx.wait();

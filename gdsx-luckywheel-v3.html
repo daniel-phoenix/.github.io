@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎡 GDSX Lucky Wheel v3</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body {
+  margin:0; font-family:"Poppins","Noto Sans Thai",sans-serif;
+  background: radial-gradient(circle at top,#000 40%,#111 100%);
+  color:#fff; text-align:center; overflow:hidden;
+}
+h1 {color:#ffd700;text-shadow:0 0 15px #ffb400;font-size:1.8em;margin-top:20px;}
+#wheel {
+  width:300px;height:300px;border-radius:50%;
+  border:10px solid #ffcc00;margin:40px auto;
+  background:conic-gradient(
+    #ffdd55 0deg 60deg,#ff9900 60deg 120deg,
+    #ffee99 120deg 180deg,#ffcc00 180deg 240deg,
+    #ffd700 240deg 300deg,#fff4b0 300deg 360deg);
+  position:relative;transition:transform 5s cubic-bezier(0.33,1,0.68,1);
+  box-shadow:0 0 40px rgba(255,215,0,0.6);
+}
+.pointer {
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:10px solid transparent;
+  border-right:10px solid transparent;border-bottom:20px solid #ff4444;
+}
+button {
+  background:linear-gradient(90deg,#ffcc00,#ff9900);
+  border:none;border-radius:12px;padding:12px 25px;
+  font-weight:700;font-size:1em;cursor:pointer;margin-top:20px;
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
+  transition:0.3s;
+}
+button:hover {transform:scale(1.05);}
+.toast {
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(20,20,20,0.9);color:#fff;
+  padding:10px 18px;border-radius:10px;border:1px solid #ffd700;
+  display:none;z-index:2000;
+}
+.toast.show {display:block;}
+#rewardText {margin-top:20px;font-size:1.2em;color:#ffcc00;text-shadow:0 0 10px #fff;}
+.connect-btn {
+  position:fixed;top:15px;right:15px;width:50px;height:50px;
+  border-radius:50%;border:none;cursor:pointer;
+  background:radial-gradient(circle,#ffcc33 10%,#b8860b 80%);
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
+}
+.connect-btn:after {content:"🪙";font-size:22px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+footer {position:fixed;bottom:0;width:100%;background:#111;border-top:2px solid #ffd700;}
+footer p {white-space:nowrap;animation:scrollText 15s linear infinite;color:#ffd700;font-weight:600;}
+@keyframes scrollText {from{transform:translateX(100%);}to{transform:translateX(-100%);} }
+</style>
+</head>
+<body>
+
+<h1>🎡 GDSX Lucky Wheel</h1>
+<div id="wheel">
+  <div class="pointer"></div>
+</div>
+<p id="rewardText">Spin the wheel to win GDSX!</p>
+<button id="spinBtn" onclick="spin()">SPIN</button>
+<button id="claimBtn" onclick="claim()" style="display:none;">🎁 Claim Reward</button>
+<button class="connect-btn" onclick="connectWallet()"></button>
+
+<div id="toast" class="toast"></div>
+<footer><p>🌟 ระบบทองคำดิจิทัลแห่งยุคใหม่ • The Future of Digital Gold 🌟</p></footer>
+
+<script>
+const TREASURY = "0xEcd3965A43A5be3773Ab01A42F448576690Ec8e2";
+const TOKEN = "0xC6EdBBBa4C48a50C9a10EaAaFc99FCb840b5f496";
+let provider, signer, account, contract, canSpin = true, rewardAmount = 0;
+
+const abi = [
+  "function transfer(address to,uint256 amount) external returns (bool)"
+];
+
+const prizes = [
+  {amount:5, text:"หืม แค่ค่ากาแฟ ☕️"},
+  {amount:10, text:"ยังดีกว่าไม่ได้เลย 😆"},
+  {amount:20, text:"เริ่มรวยละสิ 💸"},
+  {amount:30, text:"ฟลุคจัด! 😍"},
+  {amount:50, text:"ขอเสียงหน่อยยย 🎉"},
+  {amount:100, text:"JACKPOT! ทองคำดิจิทัล 🪙"}
+];
+
+const showToast = msg=>{
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+};
+
+async function connectWallet(){
+  if(!window.ethereum){alert("Install MetaMask!");return;}
+  provider=new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts",[]);
+  signer=provider.getSigner();
+  account=await signer.getAddress();
+  contract=new ethers.Contract(TREASURY,abi,signer);
+  showToast("✅ Wallet connected");
+}
+
+function spin(){
+  if(!canSpin)return showToast("⏳ Try again tomorrow!");
+  if(!signer)return showToast("Connect wallet first!");
+  canSpin=false;
+
+  const wheel=document.getElementById("wheel");
+  const deg=3600+Math.floor(Math.random()*360);
+  wheel.style.transform=`rotate(${deg}deg)`;
+  const prizeIndex=Math.floor(((deg%360)/60));
+  const prize=prizes[(6-prizeIndex)%6];
+  rewardAmount=prize.amount;
+
+  setTimeout(()=>{
+    document.getElementById("rewardText").textContent=
+      `🎉 You won ${prize.amount} GDSX! ${prize.text}`;
+    showToast("🎁 Claim your reward!");
+    document.getElementById("claimBtn").style.display="inline-block";
+  },5200);
+}
+
+async function claim(){
+  if(!rewardAmount)return showToast("No reward to claim!");
+  try{
+    const amountWei=ethers.utils.parseUnits(String(rewardAmount),18);
+    const tx=await contract.transfer(account,amountWei);
+    await tx.wait();
+    showToast(`✅ Claimed ${rewardAmount} GDSX`);
+    document.getElementById("claimBtn").style.display="none";
+    rewardAmount=0;
+  }catch(e){
+    console.error(e);showToast("❌ Claim failed");
+  }
+}
+</script>
+</body>
+</html>

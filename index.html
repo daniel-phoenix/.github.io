@@ -66,11 +66,7 @@ button.claim {
   from{box-shadow:0 0 12px rgba(255,215,0,.5);}
   to{box-shadow:0 0 30px rgba(255,255,140,1);}
 }
-.buy {
-  background:linear-gradient(90deg,#00ffcc,#00cc99);
-  color:#111;font-weight:700;border:none;border-radius:12px;
-  padding:10px 20px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,204,.7);
-}
+.buy {background:linear-gradient(90deg,#00ffcc,#00cc99);color:#111;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,204,.7);}
 footer {
   position:fixed;bottom:0;background:#111;border-top:2px solid rgba(255,215,0,0.5);
   width:100%;overflow:hidden;height:30px;
@@ -135,7 +131,8 @@ footer p {
 <div class="popup-menu" id="popupMenu">
   <a href="#">🌾 Farm</a>
   <a href="#">💰 Treasury</a>
-  <a href="https://daniel-phoenix.github.io/gdsx-luckywheel-v2.8.html" target="_blank">🎡 Lucky Wheel Game</a>
+  <a href="https://daniel-phoenix.github.io/game.html" target="_blank">🎮 GDSX Game Center</a>
+  <a href="https://daniel-phoenix.github.io/gdsx-luckywheel-v2.8.html" target="_blank">🎡 Lucky Wheel</a>
   <a href="#">📄 Whitepaper</a>
   <a href="#">🎈 Airdrop</a>
   <a href="#">💬 Community</a>
@@ -250,6 +247,7 @@ async function refresh(){
   const stake=parseFloat(ethers.utils.formatUnits(u.amount,decimals));
   const rew=parseFloat(ethers.utils.formatUnits(pending,decimals));
   const walletBal=parseFloat(ethers.utils.formatUnits(userBal,decimals));
+
   $("stake").textContent=stake.toFixed(4);
   $("reward").textContent=rew.toFixed(4);
   $("rewardUsd").textContent=`≈ $${(rew*price).toFixed(4)} USD`;

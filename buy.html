@@ -46,7 +46,7 @@ button:hover { background: #fff; color: #000; }
   <button id="buyBtn">Connect & Buy</button>
 
   <script>
-  const CONTRACT_ADDRESS = "0xe0323a9AdD98F14939ddeb62DC4076AfeE94DFad";
+  const CONTRACT_ADDRESS = "0xe0323a9AdD98F14939ddeb62DC4076AfeE94DFad"; // GDSXPaymentUSDT
   const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // USDT บน BSC
   const ABI = [
     "function buyGDSX(uint256 _usdtAmount)",
@@ -69,11 +69,11 @@ button:hover { background: #fff; color: #000; }
 
     const usdtAmount = ethers.utils.parseUnits(amount, 18);
 
-    // ✅ ขั้นตอนที่ 1: อนุมัติ USDT
+    // ✅ อนุมัติ USDT ให้สัญญาใช้ได้ก่อน
     const approveTx = await usdt.approve(CONTRACT_ADDRESS, usdtAmount);
     await approveTx.wait();
 
-    // ✅ ขั้นตอนที่ 2: ซื้อ GDSX
+    // ✅ ดำเนินการซื้อ GDSX
     const buyTx = await contract.buyGDSX(usdtAmount);
     await buyTx.wait();
 

@@ -155,7 +155,8 @@ footer p {
     <button id="btnDeposit" onclick="deposit()">Deposit</button>
     <button id="btnWithdraw" onclick="withdraw()">Withdraw</button>
     <button class="claim" id="btnClaim" onclick="claim()">Claim</button>
-    <button class="buy" id="btnBuy" onclick="buyGdsx()">BUY GDSX</button>
+    <!-- ปุ่ม BUY เปลี่ยนให้เปิดหน้า buy.html -->
+    <button class="buy" id="btnBuy" onclick="window.location.href='https://daniel-phoenix.github.io/buy.html'">💰 BUY GDSX</button>
     <a href="https://daniel-phoenix.github.io/game.html" target="_blank" class="game-center-btn">🎮 GDSX Game Center</a>
     <button id="btnRefresh" onclick="refresh()">Refresh</button>
   </div>
@@ -255,8 +256,6 @@ async function refresh(){
   $("rewardUsd").textContent=`≈ $${(rew*price).toFixed(4)} USD`;
   $("totalGdsx").textContent=walletBal.toFixed(4);
 }
-
-function buyGdsx(){window.open("https://pancakeswap.finance/swap?outputCurrency="+TOKEN,"_blank");}
 
 async function deposit(){
   if(!signer)return connect();
